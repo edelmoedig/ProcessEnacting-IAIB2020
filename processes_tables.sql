@@ -49,13 +49,6 @@ CREATE TABLE Administator
 	CONSTRAINT CHK_Administrator_e_mail_at_least_one_at CHECK (email LIKE '%@%')
 );
 
-CREATE TABLE Decision
-(
-	decision_id integer NOT NULL,
-	CONSTRAINT PK_Decision PRIMARY KEY (decision_id),
-	CONSTRAINT FK_Decision_Step FOREIGN KEY (decision_id) REFERENCES Step (step_id) ON DELETE Cascade ON UPDATE No Action
-);
-
 CREATE TABLE Process_status_type
 (
 	process_status_type_code smallint NOT NULL,
