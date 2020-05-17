@@ -72,7 +72,6 @@ CREATE TABLE Process
 	CONSTRAINT AK_Process_first_step_id UNIQUE (first_step_id),
 	CONSTRAINT CHK_Process_name_not_only_whitespaces CHECK (name !~ '^[[:space:]]*$'),
 	CONSTRAINT CHK_Process_description_not_only_whitespaces CHECK (description !~ '^[[:space:]]*$'),
-	CONSTRAINT FK_Process_Step_first_step FOREIGN KEY (first_step_id) REFERENCES Step (step_id) ON DELETE Set Null ON UPDATE No Action,
 	CONSTRAINT FK_Process_Process_status_type FOREIGN KEY (process_status_type_code) REFERENCES Process_status_type (process_status_type_code) ON DELETE No Action ON UPDATE Cascade,
 	CONSTRAINT FK_Process_Administator FOREIGN KEY (owner_id) REFERENCES Administator (administrator_id) ON DELETE No Action ON UPDATE No Action
 );
@@ -93,6 +92,9 @@ CREATE TABLE Step
 );
 CREATE INDEX IX_Step_Process ON Step (step_id ASC);
 CREATE INDEX IX_Step_next_step ON Step (next_step_id ASC);
+
+/* Add First_step FK to Process */
+ALTER TABLE Process ADD CONSTRAINT FK_Process_Step_first_step FOREIGN KEY (first_step_id) REFERENCES Step (step_id) ON DELETE Set Null ON UPDATE No Action;
 
 CREATE TABLE Action
 (
