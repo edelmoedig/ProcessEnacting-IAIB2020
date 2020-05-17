@@ -74,7 +74,7 @@ CREATE TABLE Process
 	CONSTRAINT CHK_Process_description_not_only_whitespaces CHECK (description !~ '^[[:space:]]*$'),
 	CONSTRAINT FK_Process_Process_status_type FOREIGN KEY (process_status_type_code) REFERENCES Process_status_type (process_status_type_code) ON DELETE No Action ON UPDATE Cascade,
 	CONSTRAINT FK_Process_Administrator FOREIGN KEY (owner_id) REFERENCES Administrator (administrator_id) ON DELETE No Action ON UPDATE No Action
-);
+) WITH (fillfactor = 90);
 CREATE INDEX IX_Process_owner ON Process (owner_id ASC);
 CREATE INDEX IX_Process_process_status_type_code ON Process (process_status_type_code ASC);
 
@@ -89,7 +89,7 @@ CREATE TABLE Step
 	CONSTRAINT CHK_Step_description_not_only_whitespace CHECK (description !~ '^[[:space:]]*$'),
 	CONSTRAINT FK_Step_Step FOREIGN KEY (next_step_id) REFERENCES Step (step_id) ON DELETE Set Null ON UPDATE No Action,
 	CONSTRAINT FK_Step_Process FOREIGN KEY (process_id) REFERENCES Process (process_id) ON DELETE No Action ON UPDATE No Action
-);
+) WITH (fillfactor = 90);
 CREATE INDEX IX_Step_Process ON Step (step_id ASC);
 CREATE INDEX IX_Step_next_step ON Step (next_step_id ASC);
 
