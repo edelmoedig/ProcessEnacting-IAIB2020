@@ -66,7 +66,7 @@ CREATE TABLE Process
 	owner_id integer NOT NULL,
 	first_step_id integer NULL,
 	reg_time timestamp NOT NULL   DEFAULT LOCALTIMESTAMP(0),
-	process_status_type_code smallint NOT NULL   DEFAULT 2,
+	process_status_type_code smallint NOT NULL   DEFAULT 1,
 	password varchar(60) NULL,
 	CONSTRAINT PK_Process PRIMARY KEY (process_id),
 	CONSTRAINT AK_Process_first_step_id UNIQUE (first_step_id),
