@@ -137,7 +137,7 @@ CREATE TABLE Variant
 (
 	variant_id serial NOT NULL,
 	decision_id integer NOT NULL,
-	next_step_id integer NOT NULL,
+	next_step_id integer NULL,
 	weight decimal(10,3) NULL,
 	reg_time timestamp NOT NULL   DEFAULT LOCALTIMESTAMP(0),
 	guard text NOT NULL,
