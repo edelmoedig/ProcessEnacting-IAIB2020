@@ -42,7 +42,7 @@ CREATE TABLE Administrator
 	is_active boolean NOT NULL   DEFAULT TRUE,
 	reg_time timestamp NOT NULL   DEFAULT LOCALTIMESTAMP(0),
 	CONSTRAINT PK_Administrator PRIMARY KEY (administrator_id),
-	CONSTRAINT AK_Administrator_email UNIQUE (email),
+	CONSTRAINT AK_Administrator_email UNIQUE lower(email),
 	CONSTRAINT CHK_Administrator_must_have_a_name CHECK (given_name IS NOT NULL OR surname IS NOT NULL),
 	CONSTRAINT CHK_Administrator_given_name_not_only_whitespace CHECK (given_name !~ '^[[:space:]]*$'),
 	CONSTRAINT CHK_Administrator_surname_not_only_whitespace CHECK (surname !~ '^[[:space:]]*$'),
