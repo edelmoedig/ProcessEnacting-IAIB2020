@@ -107,3 +107,46 @@ SELECT p_process_usage_id, p_step_id FOR UPDATE;
 $$ LANGUAGE sql SECURITY DEFINER SET search_path = public, pg_temp;
 
 COMMENT ON FUNCTION f_log_step_click(p_process_usage_id Step_click.process_usage_id%TYPE, p_step_id Step_click.step_id%TYPE) IS 'This function is used to log a chosen step.';
+
+CREATE OR REPLACE FUNCTION f_change_process_password(p_password Process.password%TYPE)
+RETURNS VOID AS $$
+INSERT INTO Process(password)
+SELECT NULLIF(p_password, '') FOR UPDATE;
+$$ LANGUAGE sql SECURITY DEFINER SET search_path = public, pg_temp;
+
+COMMENT ON FUNCTION f_change_process_password(p_password Process.password%TYPE) IS 'This function is used to change a process''s password. If the provided password is empty, the process'' password is set to NULL instead.';
+
+CREATE OR REPLACE FUNCTION f_activate_process(p_process_id Process.process_id%TYPE)
+RETURNS VOID AS $$
+UPDATE Process
+SET process_status_type_code = 2
+WHERE process_id = p_process_id;
+$$ LANGUAGE sql SECURITY DEFINER SET search_path = public, pg_temp;
+
+COMMENT ON FUNCTION f_activate_process(p_process_id Process.process_id%TYPE) IS 'This function is to activate a process. The process can only be activated if it''s current status is "On hold" or "Inactive", every step is designed correctly, and the process can successfully be completed.';
+
+CREATE OR REPLACE FUNCTION f_deactivate_process(p_process_id Process.process_id%TYPE)
+RETURNS VOID AS $$
+UPDATE Process
+SET process_status_type_code = 3
+WHERE process_id = p_process_id;
+$$ LANGUAGE sql SECURITY DEFINER SET search_path = public, pg_temp;
+
+COMMENT ON FUNCTION f_deactivate_process(p_process_id Process.process_id%TYPE) IS 'This function is to deactivate a process. The process can only be deactivated if it''s current status is "Active".';
+
+CREATE OR REPLACE FUNCTION f_end_process(p_process_id Process.process_id%TYPE)
+RETURNS VOID AS $$
+UPDATE Process
+SET process_status_type_code = 4
+WHERE process_id = p_process_id;
+$$ LANGUAGE sql SECURITY DEFINER SET search_path = public, pg_temp;
+
+COMMENT ON FUNCTION f_end_process(p_process_id Process.process_id%TYPE) IS 'This function is to end a process by making it permanently inaccessible to users but keeping it in the database. The process can only be ended if it''s current status is "Active" or "Inactive".';
+
+CREATE OR REPLACE FUNCTION f_forget_process(p_process_id Process.process_id%TYPE)
+RETURNS BOOLEAN AS $$
+WITH forget_process AS (DELETE FROM Process WHERE process_id = p_process_id RETURNING process_id)
+SELECT Count(*) > 0 AS result FROM forget_process;
+$$ LANGUAGE sql SECURITY DEFINER SET search_path = public, pg_temp;
+
+COMMENT ON FUNCTION f_end_process(p_process_id Process.process_id%TYPE) IS 'This function is to forget a process by deleting in from the database. The process can only be ended if it''s current status is "On hold". This function returns TRUE if the deletion was successful.';
