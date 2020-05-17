@@ -4,7 +4,7 @@ DROP TABLE IF EXISTS Action CASCADE;
      
 DROP TABLE IF EXISTS Action_in_parallel_activity CASCADE;
 
-DROP TABLE IF EXISTS Administator CASCADE;
+DROP TABLE IF EXISTS Administrator CASCADE;
 
 DROP TABLE IF EXISTS Decision CASCADE;
 
@@ -32,7 +32,7 @@ DROP TABLE IF EXISTS Variant CASCADE;
 
 /* Create Tables */
 
-CREATE TABLE Administator
+CREATE TABLE Administrator
 (
 	administrator_id serial NOT NULL,
 	email varchar(254) NOT NULL,
@@ -41,7 +41,7 @@ CREATE TABLE Administator
 	surname varchar(800) NULL,
 	is_active boolean NOT NULL   DEFAULT TRUE,
 	reg_time timestamp NOT NULL   DEFAULT LOCALTIMESTAMP(0),
-	CONSTRAINT PK_Administator PRIMARY KEY (administrator_id),
+	CONSTRAINT PK_Administrator PRIMARY KEY (administrator_id),
 	CONSTRAINT AK_Administrator_email UNIQUE (email),
 	CONSTRAINT CHK_Administrator_must_have_a_name CHECK (given_name IS NOT NULL OR surname IS NOT NULL),
 	CONSTRAINT CHK_Administrator_given_name_not_only_whitespace CHECK (given_name !~ '^[[:space:]]*$'),
@@ -73,7 +73,7 @@ CREATE TABLE Process
 	CONSTRAINT CHK_Process_name_not_only_whitespaces CHECK (name !~ '^[[:space:]]*$'),
 	CONSTRAINT CHK_Process_description_not_only_whitespaces CHECK (description !~ '^[[:space:]]*$'),
 	CONSTRAINT FK_Process_Process_status_type FOREIGN KEY (process_status_type_code) REFERENCES Process_status_type (process_status_type_code) ON DELETE No Action ON UPDATE Cascade,
-	CONSTRAINT FK_Process_Administator FOREIGN KEY (owner_id) REFERENCES Administator (administrator_id) ON DELETE No Action ON UPDATE No Action
+	CONSTRAINT FK_Process_Administrator FOREIGN KEY (owner_id) REFERENCES Administrator (administrator_id) ON DELETE No Action ON UPDATE No Action
 );
 CREATE INDEX IX_Process_owner ON Process (owner_id ASC);
 CREATE INDEX IX_Process_process_status_type_code ON Process (process_status_type_code ASC);
