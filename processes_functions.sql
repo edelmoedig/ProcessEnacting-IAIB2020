@@ -9,10 +9,11 @@ $$ LANGUAGE sql SECURITY DEFINER
                 SET search_path = public, pg_temp;
 
 COMMENT ON FUNCTION f_register_administrator(p_email Administrator.email%TYPE,
-                                             p_password Administrator.password%TYPE,
-                                             p_given_name Administrator.given_name%TYPE,
-                                             p_surname Administrator.surname%TYPE)
+    p_password Administrator.password%TYPE,
+    p_given_name Administrator.given_name%TYPE,
+    p_surname Administrator.surname%TYPE)
     IS 'This function is used to register a new process administrator.';
+
 
 
 CREATE OR REPLACE FUNCTION f_register_process(p_name Process.name%TYPE, p_description Process.description%TYPE,
@@ -24,39 +25,81 @@ $$ LANGUAGE sql SECURITY DEFINER
                 SET search_path = public, pg_temp;
 
 COMMENT ON FUNCTION f_register_process(p_name Process.name%TYPE,
-                                       p_description Process.description%TYPE,
-                                       p_owner Process.owner_id%TYPE,
-                                       p_password Process.password%TYPE)
+    p_description Process.description%TYPE,
+    p_owner Process.owner_id%TYPE,
+    p_password Process.password%TYPE)
     IS 'This function is used to register a new process.';
 
 
-CREATE OR REPLACE FUNCTION f_add_action(p_process_id Step.process_id%TYPE, p_description Step.description%TYPE)
+
+CREATE OR REPLACE FUNCTION f_add_first_action(p_process_id Step.process_id%TYPE, p_description Step.description%TYPE)
     RETURNS VOID AS $$
 BEGIN
-    INSERT INTO Step(process_id, description) VALUES (p_process_id, p_description);
-    INSERT INTO Action(action_id) VALUES (currval('step_step_id_seq'));
+    INSERT INTO Step(process_id, description) VALUES (p_process_id, p_description) RETURNING step_id;
+    INSERT INTO Action(action_id) VALUES (step_id);
+    UPDATE Process SET first_step_id = step_id WHERE process_id = p_process_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER
                     SET search_path = public, pg_temp;
 
-COMMENT ON FUNCTION f_add_action(p_process_id Step.process_id%TYPE,
-                                 p_description Step.description%TYPE)
-    IS 'This function is used to add a new acton step to an existing process.';
+COMMENT ON FUNCTION f_add_first_action(p_process_id Step.process_id%TYPE,
+    p_description Step.description%TYPE)
+    IS 'This function is used to add the first step (action in this case) to a newly-created process.';
 
 
-CREATE OR REPLACE FUNCTION f_add_parallel_activity(p_process_id Step.process_id%TYPE,
-                                                   p_description Step.description%TYPE)
+
+CREATE OR REPLACE FUNCTION f_add_action_to_prev_step(p_process_id Step.process_id%TYPE,
+                                                     p_previous_step_id Step.next_step_id%TYPE,
+                                                     p_description Step.description%TYPE)
     RETURNS VOID AS $$
 BEGIN
-    INSERT INTO Step(process_id, description) VALUES (p_process_id, p_description);
-    INSERT INTO Parallel_activity(parallel_activity_id) VALUES (currval('step_step_id_seq'));
+    INSERT INTO Step(process_id, description) VALUES (p_process_id, p_description) RETURNING step_id;
+    INSERT INTO Action(action_id) VALUES (step_id);
+    UPDATE Step SET next_step_id = step_id WHERE Step.step_id = p_previous_step_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER
                     SET search_path = public, pg_temp;
 
-COMMENT ON FUNCTION f_add_parallel_activity(p_process_id Step.process_id%TYPE,
-                                            p_description Step.description%TYPE)
-    IS 'This function is used to add a new parallel activity to an existing process.';
+COMMENT ON FUNCTION f_add_action_to_prev_step(p_process_id Step.process_id%TYPE,
+                                              p_previous_step_id Step.next_step_id%TYPE,
+                                              p_description Step.description%TYPE)
+    IS 'This function is used to add an action step connected to an existing previous step.';
+
+
+
+CREATE OR REPLACE FUNCTION f_add_first_parallel_activity(p_process_id Step.process_id%TYPE,
+                                                         p_description Step.description%TYPE)
+    RETURNS VOID AS $$
+BEGIN
+    INSERT INTO Step(process_id, description) VALUES (p_process_id, p_description) RETURNING step_id;
+    INSERT INTO Parallel_activity(parallel_activity_id) VALUES (step_id);
+    UPDATE Process SET first_step_id = step_id WHERE process_id = p_process_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER
+                    SET search_path = public, pg_temp;
+
+COMMENT ON FUNCTION f_add_first_parallel_activity(p_process_id Step.process_id%TYPE,
+    p_description Step.description%TYPE)
+    IS 'This function is used to add the first step (parallel activity in this case) to a newly-created process.';
+
+
+
+CREATE OR REPLACE FUNCTION f_add_parallel_activity_to_step(p_process_id Step.process_id%TYPE,
+                                                           p_previous_step_id Step.next_step_id%TYPE,
+                                                           p_description Step.description%TYPE)
+    RETURNS VOID AS $$
+BEGIN
+    INSERT INTO Step(process_id, description) VALUES (p_process_id, p_description) RETURNING step_id;
+    INSERT INTO Parallel_activity(parallel_activity_id) VALUES (step_id);
+    UPDATE Step SET next_step_id = step_id WHERE Step.step_id = p_previous_step_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER
+                    SET search_path = public, pg_temp;
+
+COMMENT ON FUNCTION f_add_first_parallel_activity(p_process_id Step.process_id%TYPE,
+    p_description Step.description%TYPE)
+    IS 'This function is used to add a parallel activity connected to an existing previous step.';
+
 
 
 CREATE OR REPLACE FUNCTION f_add_action_in_parallel_activity(p_process_id Step.process_id%TYPE,
@@ -64,31 +107,53 @@ CREATE OR REPLACE FUNCTION f_add_action_in_parallel_activity(p_process_id Step.p
                                                              p_description Step.description%TYPE)
     RETURNS VOID AS $$
 BEGIN
-    INSERT INTO Step(process_id, description) VALUES (p_process_id, p_description);
+    INSERT INTO Step(process_id, description) VALUES (p_process_id, p_description) RETURNING step_id;
     INSERT INTO Action_in_parallel_activity(parallel_activity_id, action_id)
-    VALUES (p_parallel_activity_id, currval('step_step_id_seq'));
+    VALUES (p_parallel_activity_id, step_id);
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER
                     SET search_path = public, pg_temp;
 
 COMMENT ON FUNCTION f_add_action_in_parallel_activity(p_process_id Step.process_id%TYPE,
-                                                      p_parallel_activity_id Parallel_activity.parallel_activity_id%TYPE,
-                                                      p_description Step.description%TYPE)
+    p_parallel_activity_id Parallel_activity.parallel_activity_id%TYPE,
+    p_description Step.description%TYPE)
     IS 'This function is used to add a new action to an existing parallel activity in an existing process.';
 
 
-CREATE OR REPLACE FUNCTION f_add_decision(p_process_id Step.process_id%TYPE, p_description Step.description%TYPE)
+
+CREATE OR REPLACE FUNCTION f_add_first_decision(p_process_id Step.process_id%TYPE, p_description Step.description%TYPE)
     RETURNS VOID AS $$
 BEGIN
-    INSERT INTO Step(process_id, description) VALUES (p_process_id, p_description);
-    INSERT INTO Decision(decision_id) VALUES (currval('step_step_id_seq'));
+    INSERT INTO Step(process_id, description) VALUES (p_process_id, p_description) RETURNING step_id;
+    INSERT INTO Decision(decision_id) VALUES (step_id);
+    UPDATE Process SET first_step_id = step_id WHERE process_id = p_process_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER
                     SET search_path = public, pg_temp;
 
-COMMENT ON FUNCTION f_add_decision(p_process_id Step.process_id%TYPE,
-                                   p_description Step.description%TYPE)
-    IS 'This function is used to add a new decision step to an existing process.';
+COMMENT ON FUNCTION f_add_first_decision(p_process_id Step.process_id%TYPE,
+    p_description Step.description%TYPE)
+    IS 'This function is used to add the first step (decision in this case) to a newly-created process.';
+
+
+
+CREATE OR REPLACE FUNCTION f_add_decision_to_step(p_process_id Step.process_id%TYPE,
+                                                  p_previous_step_id Step.next_step_id%TYPE,
+                                                  p_description Step.description%TYPE)
+    RETURNS VOID AS $$
+BEGIN
+    INSERT INTO Step(process_id, description) VALUES (p_process_id, p_description) RETURNING step_id;
+    INSERT INTO Decision(decision_id) VALUES (step_id);
+    UPDATE Step SET next_step_id = step_id WHERE Step.step_id = p_previous_step_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER
+                    SET search_path = public, pg_temp;
+
+COMMENT ON FUNCTION f_add_decision_to_step(p_process_id Step.process_id%TYPE,
+                                           p_previous_step_id Step.next_step_id%TYPE,
+                                           p_description Step.description%TYPE)
+    IS 'This function is used to add a decision step connected to an existing previous step.';
+
 
 
 CREATE OR REPLACE FUNCTION f_add_option_to_decision(p_decision_id Variant.decision_id%TYPE,
@@ -100,9 +165,10 @@ $$ LANGUAGE sql SECURITY DEFINER
                 SET search_path = public, pg_temp;
 
 COMMENT ON FUNCTION f_add_option_to_decision(p_decision_id Variant.decision_id%TYPE,
-                                             p_weight Variant.weight%TYPE,
-                                             p_guard Variant.guard%TYPE)
+    p_weight Variant.weight%TYPE,
+    p_guard Variant.guard%TYPE)
     IS 'This function is used to add an option to an existing decision step.';
+
 
 
 CREATE OR REPLACE FUNCTION f_add_process_link(p_process_id Process_link.process_id%TYPE, p_url Process_link.url%TYPE,
@@ -115,10 +181,11 @@ $$ LANGUAGE sql SECURITY DEFINER
                 SET search_path = public, pg_temp;
 
 COMMENT ON FUNCTION f_add_process_link(p_process_id Process_link.process_id%TYPE,
-                                       p_url Process_link.url%TYPE,
-                                       p_name Process_link.name%TYPE,
-                                       p_priority_nr Process_link.priority_nr%TYPE)
+    p_url Process_link.url%TYPE,
+    p_name Process_link.name%TYPE,
+    p_priority_nr Process_link.priority_nr%TYPE)
     IS 'This function is used to add a link to a process in general.';
+
 
 
 CREATE OR REPLACE FUNCTION f_add_step_link(p_step_id Step_link.step_id%TYPE, p_url Step_link.url%TYPE,
@@ -130,10 +197,11 @@ $$ LANGUAGE sql SECURITY DEFINER
                 SET search_path = public, pg_temp;
 
 COMMENT ON FUNCTION f_add_step_link(p_step_id Step_link.step_id%TYPE,
-                                    p_url Step_link.url%TYPE,
-                                    p_name Step_link.name%TYPE,
-                                    p_priority_nr Step_link.priority_nr%TYPE)
+    p_url Step_link.url%TYPE,
+    p_name Step_link.name%TYPE,
+    p_priority_nr Step_link.priority_nr%TYPE)
     IS 'This function is used to add a link to a single step of a process.';
+
 
 
 CREATE OR REPLACE FUNCTION f_add_decision_table(p_action_id Decision_table.action_id%TYPE,
@@ -145,8 +213,9 @@ $$ LANGUAGE sql SECURITY DEFINER
                 SET search_path = public, pg_temp;
 
 COMMENT ON FUNCTION f_add_decision_table(p_action_id Decision_table.action_id%TYPE,
-                                         p_name Decision_table.name%TYPE)
+    p_name Decision_table.name%TYPE)
     IS 'This function is used to add a decision table to a step of a process.';
+
 
 
 CREATE OR REPLACE FUNCTION f_add_decision_table_entry(p_decision_table_id Decision_table_entry.decision_table_id%TYPE,
@@ -160,10 +229,11 @@ $$ LANGUAGE sql SECURITY DEFINER
                 SET search_path = public, pg_temp;
 
 COMMENT ON FUNCTION f_add_decision_table_entry(p_decision_table_id Decision_table_entry.decision_table_id%TYPE,
-                                               p_condition Decision_table_entry.condition%TYPE,
-                                               p_action Decision_table_entry.action%TYPE,
-                                               p_seq_nr Decision_table_entry.seq_nr%TYPE)
+    p_condition Decision_table_entry.condition%TYPE,
+    p_action Decision_table_entry.action%TYPE,
+    p_seq_nr Decision_table_entry.seq_nr%TYPE)
     IS 'This function is used to add an entry to an existing decision table.';
+
 
 
 CREATE OR REPLACE FUNCTION f_log_process_usage(p_process_id Process_usage.process_id%TYPE)
@@ -177,6 +247,7 @@ COMMENT ON FUNCTION f_log_process_usage(p_process_id Process_usage.process_id%TY
     IS 'This function is used to log an opening of a process.';
 
 
+
 CREATE OR REPLACE FUNCTION f_log_step_click(p_process_usage_id Step_click.process_usage_id%TYPE,
                                             p_step_id Step_click.step_id%TYPE)
     RETURNS VOID AS $$
@@ -186,19 +257,22 @@ $$ LANGUAGE sql SECURITY DEFINER
                 SET search_path = public, pg_temp;
 
 COMMENT ON FUNCTION f_log_step_click(p_process_usage_id Step_click.process_usage_id%TYPE,
-                                     p_step_id Step_click.step_id%TYPE)
+    p_step_id Step_click.step_id%TYPE)
     IS 'This function is used to log a chosen step.';
 
 
-CREATE OR REPLACE FUNCTION f_change_process_password(p_password Process.password%TYPE)
+
+CREATE OR REPLACE FUNCTION f_change_process_password(p_process_id Process.process_id%TYPE, p_password Process.password%TYPE)
     RETURNS VOID AS $$
-INSERT INTO Process(password)
-SELECT NULLIF(p_password, '') FOR UPDATE;
+UPDATE Process
+SET password = NULLIF(p_password, '')
+WHERE process_id = p_process_id
 $$ LANGUAGE sql SECURITY DEFINER
                 SET search_path = public, pg_temp;
 
-COMMENT ON FUNCTION f_change_process_password(p_password Process.password%TYPE)
+COMMENT ON FUNCTION f_change_process_password(p_process_id Process.process_id%TYPE, p_password Process.password%TYPE)
     IS 'This function is used to change a process''s password. If the provided password is empty, the process'' password is set to NULL instead.';
+
 
 
 CREATE OR REPLACE FUNCTION f_activate_process(p_process_id Process.process_id%TYPE)
@@ -213,6 +287,7 @@ COMMENT ON FUNCTION f_activate_process(p_process_id Process.process_id%TYPE)
     IS 'This function is to activate a process. The process can only be activated if it''s current status is "On hold" or "Inactive", every step is designed correctly, and the process can successfully be completed.';
 
 
+
 CREATE OR REPLACE FUNCTION f_deactivate_process(p_process_id Process.process_id%TYPE)
     RETURNS VOID AS $$
 UPDATE Process
@@ -222,6 +297,7 @@ $$ LANGUAGE sql SECURITY DEFINER
                 SET search_path = public, pg_temp;
 
 COMMENT ON FUNCTION f_deactivate_process(p_process_id Process.process_id%TYPE) IS 'This function is to deactivate a process. The process can only be deactivated if it''s current status is "Active".';
+
 
 
 CREATE OR REPLACE FUNCTION f_end_process(p_process_id Process.process_id%TYPE)
@@ -234,6 +310,7 @@ $$ LANGUAGE sql SECURITY DEFINER
 
 COMMENT ON FUNCTION f_end_process(p_process_id Process.process_id%TYPE)
     IS 'This function is to end a process by making it permanently inaccessible to users but keeping it in the database. The process can only be ended if it''s current status is "Active" or "Inactive".';
+
 
 
 CREATE OR REPLACE FUNCTION f_forget_process(p_process_id Process.process_id%TYPE)
