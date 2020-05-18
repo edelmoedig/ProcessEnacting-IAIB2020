@@ -197,9 +197,9 @@ $$ LANGUAGE sql SECURITY DEFINER
                 SET search_path = public, pg_temp;
 
 COMMENT ON FUNCTION f_add_step_link(p_step_id Step_link.step_id%TYPE,
-    p_url Step_link.url%TYPE,
-    p_name Step_link.name%TYPE,
-    p_priority_nr Step_link.priority_nr%TYPE)
+                                    p_url Step_link.url%TYPE,
+                                    p_name Step_link.name%TYPE,
+                                    p_priority_nr Step_link.priority_nr%TYPE)
     IS 'This function is used to add a link to a single step of a process.';
 
 
@@ -229,9 +229,9 @@ $$ LANGUAGE sql SECURITY DEFINER
                 SET search_path = public, pg_temp;
 
 COMMENT ON FUNCTION f_add_decision_table_entry(p_decision_table_id Decision_table_entry.decision_table_id%TYPE,
-    p_condition Decision_table_entry.condition%TYPE,
-    p_action Decision_table_entry.action%TYPE,
-    p_seq_nr Decision_table_entry.seq_nr%TYPE)
+                                               p_condition Decision_table_entry.condition%TYPE,
+                                               p_action Decision_table_entry.action%TYPE,
+                                               p_seq_nr Decision_table_entry.seq_nr%TYPE)
     IS 'This function is used to add an entry to an existing decision table.';
 
 
