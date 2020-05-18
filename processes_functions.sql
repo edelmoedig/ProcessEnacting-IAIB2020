@@ -16,39 +16,41 @@ COMMENT ON FUNCTION f_register_process(p_name Process.name%TYPE, p_description P
 
 CREATE OR REPLACE FUNCTION f_add_action(p_process_id Step.process_id%TYPE, p_description Step.description%TYPE)
 RETURNS VOID AS $$
-BEGIN;
-INSERT INTO Step(process_id, description) VALUES (p_process_id, p_description);
-INSERT INTO Action(action_id) VALUES (currval('step_step_id_seq'));
+BEGIN
+    INSERT INTO Step(process_id, description) VALUES (p_process_id, p_description);
+    INSERT INTO Action(action_id) VALUES (currval('step_step_id_seq'));
 END;
-$$ LANGUAGE sql SECURITY DEFINER SET search_path = public, pg_temp;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
 
 COMMENT ON FUNCTION f_add_action(p_process_id Step.process_id%TYPE, p_description Step.description%TYPE) IS 'This function is used to add a new acton step to an existing process.';
 
 CREATE OR REPLACE FUNCTION f_add_parallel_activity(p_process_id Step.process_id%TYPE, p_description Step.description%TYPE)
 RETURNS VOID AS $$
-BEGIN;
-INSERT INTO Step(process_id, description) VALUES (p_process_id, p_description);
-INSERT INTO Parallel_activity(parallel_activity_id) VALUES (currval('step_step_id_seq'));
-$$ LANGUAGE sql SECURITY DEFINER SET search_path = public, pg_temp;
+BEGIN
+    INSERT INTO Step(process_id, description) VALUES (p_process_id, p_description);
+    INSERT INTO Parallel_activity(parallel_activity_id) VALUES (currval('step_step_id_seq'));
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
 
 COMMENT ON FUNCTION f_add_parallel_activity(p_process_id Step.process_id%TYPE, p_description Step.description%TYPE) IS 'This function is used to add a new parallel activity to an existing process.';
 
 CREATE OR REPLACE FUNCTION f_add_action_in_parallel_activity(p_process_id Step.process_id%TYPE, p_parallel_activity_id Parallel_activity.parallel_activity_id%TYPE, p_description Step.description%TYPE)
 RETURNS VOID AS $$
-BEGIN;
-INSERT INTO Step(process_id, description) VALUES (p_process_id, p_description);
-INSERT INTO Action_in_parallel_activity(parallel_activity_id, action_id) VALUES (p_parallel_activity_id, currval('step_step_id_seq'));
-$$ LANGUAGE sql SECURITY DEFINER SET search_path = public, pg_temp;
+BEGIN
+    INSERT INTO Step(process_id, description) VALUES (p_process_id, p_description);
+    INSERT INTO Action_in_parallel_activity(parallel_activity_id, action_id) VALUES (p_parallel_activity_id, currval('step_step_id_seq'));
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
 
 COMMENT ON FUNCTION f_add_action_in_parallel_activity(p_process_id Step.process_id%TYPE, p_parallel_activity_id Parallel_activity.parallel_activity_id%TYPE, p_description Step.description%TYPE) IS 'This function is used to add a new action to an existing parallel activity in an existing process.';
 
 CREATE OR REPLACE FUNCTION f_add_decision(p_process_id Step.process_id%TYPE, p_description Step.description%TYPE)
 RETURNS VOID AS $$
-BEGIN;
-INSERT INTO Step(process_id, description) VALUES (p_process_id, p_description);
-INSERT INTO Decision(decision_id) VALUES (currval('step_step_id_seq'));
+BEGIN
+    INSERT INTO Step(process_id, description) VALUES (p_process_id, p_description);
+    INSERT INTO Decision(decision_id) VALUES (currval('step_step_id_seq'));
 END;
-$$ LANGUAGE sql SECURITY DEFINER SET search_path = public, pg_temp;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
 
 COMMENT ON FUNCTION f_add_decision(p_process_id Step.process_id%TYPE, p_description Step.description%TYPE) IS 'This function is used to add a new decision step to an existing process.';
 
