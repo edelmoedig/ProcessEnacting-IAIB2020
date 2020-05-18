@@ -17,6 +17,7 @@ CREATE TRIGGER trig_register_process
 EXECUTE FUNCTION f_register_process();
 
 
+
 CREATE OR REPLACE FUNCTION f_change_process_status() RETURNS trigger AS
 $$
 BEGIN
@@ -37,6 +38,7 @@ CREATE TRIGGER trig_change_process_status
                (OLD.process_status_type_code = 3 AND NEW.process_status_type_code = 2) OR
                (OLD.process_status_type_code IN (2, 3) AND NEW.process_status_type_code = 4)))
 EXECUTE FUNCTION f_change_process_status();
+
 
 
 CREATE OR REPLACE FUNCTION f_activate_process_variants_no_next_step() RETURNS trigger AS
@@ -71,6 +73,7 @@ CREATE TRIGGER trig_activate_process_variants_no_next_step
 EXECUTE FUNCTION f_activate_process_variants_no_next_step();
 
 
+
 CREATE OR REPLACE FUNCTION f_activate_process_decision_less_than_2_variants() RETURNS trigger AS
 $$
 DECLARE
@@ -102,6 +105,7 @@ CREATE TRIGGER trig_activate_process_decision_less_than_2_variants
 EXECUTE FUNCTION f_activate_process_variants_no_next_step();
 
 
+
 CREATE OR REPLACE FUNCTION f_change_process_owner_or_reg_time() RETURNS trigger AS
 $$
 BEGIN
@@ -120,6 +124,7 @@ CREATE TRIGGER trig_change_process_owner_or_reg_time
 EXECUTE FUNCTION f_change_process_owner_or_reg_time();
 
 
+
 CREATE OR REPLACE FUNCTION f_change_step_reg_time() RETURNS trigger AS
 $$
 BEGIN
@@ -136,6 +141,7 @@ CREATE TRIGGER trig_change_step_reg_time
     FOR EACH ROW
     WHEN (NEW.reg_time <> OLD.reg_time)
 EXECUTE FUNCTION f_change_step_reg_time();
+
 
 
 CREATE OR REPLACE FUNCTION f_change_process_name_or_description() RETURNS trigger AS
