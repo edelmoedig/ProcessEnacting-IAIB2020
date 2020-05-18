@@ -23,6 +23,6 @@ SELECT Process.process_id,
 FROM Process_status_type
          INNER JOIN (Administrator INNER JOIN Process ON Administrator.administrator_id = Process.owner_id)
                     ON Process_status_type.process_status_type_code = Process.process_status_type_code
-WHERE Process_status_type.code IN (2, 3);
+WHERE Process_status_type.process_status_type_code IN (2, 3);
 
 COMMENT ON VIEW active_and_inactive_processes IS 'This view shows basic information about every active and inactive process.';
