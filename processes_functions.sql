@@ -90,6 +90,7 @@ COMMENT ON FUNCTION f_add_decision(p_process_id Step.process_id%TYPE,
                                    p_description Step.description%TYPE)
     IS 'This function is used to add a new decision step to an existing process.';
 
+
 CREATE OR REPLACE FUNCTION f_add_option_to_decision(p_decision_id Variant.decision_id%TYPE,
                                                     p_weight Variant.weight%TYPE, p_guard Variant.guard%TYPE)
     RETURNS VOID AS $$
@@ -102,6 +103,7 @@ COMMENT ON FUNCTION f_add_option_to_decision(p_decision_id Variant.decision_id%T
                                              p_weight Variant.weight%TYPE,
                                              p_guard Variant.guard%TYPE)
     IS 'This function is used to add an option to an existing decision step.';
+
 
 CREATE OR REPLACE FUNCTION f_add_process_link(p_process_id Process_link.process_id%TYPE, p_url Process_link.url%TYPE,
                                               p_name Process_link.name%TYPE,
@@ -118,6 +120,7 @@ COMMENT ON FUNCTION f_add_process_link(p_process_id Process_link.process_id%TYPE
                                        p_priority_nr Process_link.priority_nr%TYPE)
     IS 'This function is used to add a link to a process in general.';
 
+
 CREATE OR REPLACE FUNCTION f_add_step_link(p_step_id Step_link.step_id%TYPE, p_url Step_link.url%TYPE,
                                            p_name Step_link.name%TYPE, p_priority_nr Step_link.priority_nr%TYPE)
     RETURNS VOID AS $$
@@ -132,6 +135,7 @@ COMMENT ON FUNCTION f_add_step_link(p_step_id Step_link.step_id%TYPE,
                                     p_priority_nr Step_link.priority_nr%TYPE)
     IS 'This function is used to add a link to a single step of a process.';
 
+
 CREATE OR REPLACE FUNCTION f_add_decision_table(p_action_id Decision_table.action_id%TYPE,
                                                 p_name Decision_table.name%TYPE)
     RETURNS VOID AS $$
@@ -143,6 +147,7 @@ $$ LANGUAGE sql SECURITY DEFINER
 COMMENT ON FUNCTION f_add_decision_table(p_action_id Decision_table.action_id%TYPE,
                                          p_name Decision_table.name%TYPE)
     IS 'This function is used to add a decision table to a step of a process.';
+
 
 CREATE OR REPLACE FUNCTION f_add_decision_table_entry(p_decision_table_id Decision_table_entry.decision_table_id%TYPE,
                                                       p_condition Decision_table_entry.condition%TYPE,
@@ -160,6 +165,7 @@ COMMENT ON FUNCTION f_add_decision_table_entry(p_decision_table_id Decision_tabl
                                                p_seq_nr Decision_table_entry.seq_nr%TYPE)
     IS 'This function is used to add an entry to an existing decision table.';
 
+
 CREATE OR REPLACE FUNCTION f_log_process_usage(p_process_id Process_usage.process_id%TYPE)
     RETURNS VOID AS $$
 INSERT INTO Process_usage(process_id)
@@ -169,6 +175,7 @@ $$ LANGUAGE sql SECURITY DEFINER
 
 COMMENT ON FUNCTION f_log_process_usage(p_process_id Process_usage.process_id%TYPE)
     IS 'This function is used to log an opening of a process.';
+
 
 CREATE OR REPLACE FUNCTION f_log_step_click(p_process_usage_id Step_click.process_usage_id%TYPE,
                                             p_step_id Step_click.step_id%TYPE)
@@ -182,6 +189,7 @@ COMMENT ON FUNCTION f_log_step_click(p_process_usage_id Step_click.process_usage
                                      p_step_id Step_click.step_id%TYPE)
     IS 'This function is used to log a chosen step.';
 
+
 CREATE OR REPLACE FUNCTION f_change_process_password(p_password Process.password%TYPE)
     RETURNS VOID AS $$
 INSERT INTO Process(password)
@@ -191,6 +199,7 @@ $$ LANGUAGE sql SECURITY DEFINER
 
 COMMENT ON FUNCTION f_change_process_password(p_password Process.password%TYPE)
     IS 'This function is used to change a process''s password. If the provided password is empty, the process'' password is set to NULL instead.';
+
 
 CREATE OR REPLACE FUNCTION f_activate_process(p_process_id Process.process_id%TYPE)
     RETURNS VOID AS $$
@@ -203,6 +212,7 @@ $$ LANGUAGE sql SECURITY DEFINER
 COMMENT ON FUNCTION f_activate_process(p_process_id Process.process_id%TYPE)
     IS 'This function is to activate a process. The process can only be activated if it''s current status is "On hold" or "Inactive", every step is designed correctly, and the process can successfully be completed.';
 
+
 CREATE OR REPLACE FUNCTION f_deactivate_process(p_process_id Process.process_id%TYPE)
     RETURNS VOID AS $$
 UPDATE Process
@@ -212,6 +222,7 @@ $$ LANGUAGE sql SECURITY DEFINER
                 SET search_path = public, pg_temp;
 
 COMMENT ON FUNCTION f_deactivate_process(p_process_id Process.process_id%TYPE) IS 'This function is to deactivate a process. The process can only be deactivated if it''s current status is "Active".';
+
 
 CREATE OR REPLACE FUNCTION f_end_process(p_process_id Process.process_id%TYPE)
     RETURNS VOID AS $$
@@ -223,6 +234,7 @@ $$ LANGUAGE sql SECURITY DEFINER
 
 COMMENT ON FUNCTION f_end_process(p_process_id Process.process_id%TYPE)
     IS 'This function is to end a process by making it permanently inaccessible to users but keeping it in the database. The process can only be ended if it''s current status is "Active" or "Inactive".';
+
 
 CREATE OR REPLACE FUNCTION f_forget_process(p_process_id Process.process_id%TYPE)
     RETURNS BOOLEAN AS $$
