@@ -14,7 +14,7 @@ DROP TABLE IF EXISTS Process_usage CASCADE;
 DROP TABLE IF EXISTS Step CASCADE;
 DROP TABLE IF EXISTS Step_click CASCADE;
 DROP TABLE IF EXISTS Step_link CASCADE;
-DROP TABLE IF EXISTS Variant CASCADE;
+DROP TABLE IF EXISTS Option CASCADE;
 
 /* Create Tables */
 
@@ -115,21 +115,21 @@ CREATE TABLE Decision
     CONSTRAINT FK_Decision_Step FOREIGN KEY (decision_id) REFERENCES Step (step_id) ON DELETE Cascade ON UPDATE No Action
 );
 
-CREATE TABLE Variant
+CREATE TABLE Option
 (
-    variant_id   serial         NOT NULL,
+    option_id   serial         NOT NULL,
     decision_id  integer        NOT NULL,
     next_step_id integer        NULL,
     weight       decimal(10, 3) NULL,
     reg_time     timestamp      NOT NULL DEFAULT LOCALTIMESTAMP(0),
     guard        text           NOT NULL,
-    CONSTRAINT PK_Variant PRIMARY KEY (variant_id),
-    CONSTRAINT CHK_Variant_guard_not_only_whitespace CHECK (guard !~ '^[[:space:]]*$'),
-    CONSTRAINT AK_Variant_decision_guard UNIQUE (decision_id, guard),
-    CONSTRAINT FK_Variant_Decision FOREIGN KEY (decision_id) REFERENCES Decision (decision_id) ON DELETE Cascade ON UPDATE No Action,
-    CONSTRAINT FK_Variant_Step FOREIGN KEY (next_step_id) REFERENCES Step (step_id) ON DELETE Cascade ON UPDATE No Action
+    CONSTRAINT PK_Option PRIMARY KEY (option_id),
+    CONSTRAINT CHK_Option_guard_not_only_whitespace CHECK (guard !~ '^[[:space:]]*$'),
+    CONSTRAINT AK_Option_decision_guard UNIQUE (decision_id, guard),
+    CONSTRAINT FK_Option_Decision FOREIGN KEY (decision_id) REFERENCES Decision (decision_id) ON DELETE Cascade ON UPDATE No Action,
+    CONSTRAINT FK_Option_Step FOREIGN KEY (next_step_id) REFERENCES Step (step_id) ON DELETE Cascade ON UPDATE No Action
 );
-CREATE INDEX IX_Variant_next_step ON Variant (next_step_id ASC);
+CREATE INDEX IX_Option_next_step ON Option (next_step_id ASC);
 
 CREATE TABLE Process_link
 (
