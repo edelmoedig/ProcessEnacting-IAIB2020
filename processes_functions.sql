@@ -484,7 +484,7 @@ WHERE step_link_id = p_step_link_id;
 $$ LANGUAGE sql SECURITY DEFINER
                 SET search_path = processes, public, pg_temp;
 
-COMMENT ON FUNCTION processes.f_remove_process_link(p_process_link_id Process_link.process_link_id%TYPE)
+COMMENT ON FUNCTION processes.f_remove_process_link(p_process_link_id processes.Process_link.process_link_id%TYPE)
     IS 'This function is used to remove an associated link from an existing step.';
 
 -- Decision tables
@@ -550,12 +550,12 @@ COMMENT ON FUNCTION processes.f_remove_decision_table(p_decision_table_id proces
 CREATE OR REPLACE FUNCTION processes.f_remove_decision_table_entry(p_decision_table_entry_id processes.Decision_table_entry.decision_table_entry_id%TYPE)
     RETURNS VOID AS $$
 DELETE
-FROM decision_table_entry
+FROM processes.decision_table_entry
 WHERE decision_table_entry_id = p_decision_table_entry_id;
 $$ LANGUAGE sql SECURITY DEFINER
                 SET search_path = processes, public, pg_temp;
 
-COMMENT ON FUNCTION processes.f_remove_decision_table_entry(p_decision_table_entry_id decision_table_entry.decision_table_entry_id%TYPE)
+COMMENT ON FUNCTION processes.f_remove_decision_table_entry(p_decision_table_entry_id processes.decision_table_entry.decision_table_entry_id%TYPE)
     IS 'This function is used to remove a decision table entry from an existing decision table.';
 
 
