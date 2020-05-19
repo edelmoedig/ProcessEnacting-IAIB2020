@@ -603,5 +603,5 @@ $$ LANGUAGE sql SECURITY DEFINER
                 SET search_path = processes, public, pg_temp;
 
 COMMENT ON FUNCTION processes.f_log_step_click(p_process_usage_id processes.Step_click.process_usage_id%TYPE,
-    processes.p_step_id Step_click.step_id%TYPE)
+    p_step_id processes.Step_click.step_id%TYPE)
     IS 'This function is used to log a chosen step.';
