@@ -241,6 +241,28 @@ COMMENT ON FUNCTION f_add_option_to_decision(p_decision_id Option.decision_id%TY
 
 
 
+CREATE OR REPLACE FUNCTION f_remove_option_from_decision(p_option_id Option.decision_id%TYPE)
+    RETURNS VOID AS $$
+DELETE FROM Option WHERE option_id = p_option_id;
+$$ LANGUAGE sql SECURITY DEFINER
+                SET search_path = public, pg_temp;
+
+COMMENT ON FUNCTION f_remove_option_from_decision(p_option_id Option.decision_id%TYPE)
+    IS 'This function is used to remove an option from an existing decision step.';
+
+
+
+CREATE OR REPLACE FUNCTION f_remove_step(p_step_id Step.step_id%TYPE)
+    RETURNS VOID AS $$
+DELETE FROM Step WHERE step_id = p_step_id;
+$$ LANGUAGE sql SECURITY DEFINER
+                SET search_path = public, pg_temp;
+
+COMMENT ON FUNCTION f_remove_step(p_step_id Step.step_id%TYPE)
+    IS 'This function is used to remove a step from an existing process.';
+
+
+
 -- Links
 
 CREATE OR REPLACE FUNCTION f_add_process_link(p_process_id Process_link.process_id%TYPE, p_url Process_link.url%TYPE,
@@ -287,9 +309,14 @@ COMMENT ON FUNCTION f_add_step_link(p_step_id Step_link.step_id%TYPE,
 
 
 
+CREATE OR REPLACE FUNCTION f_remove_step_link(p_step_link_id Step_link.step_link_id%TYPE)
+    RETURNS VOID AS $$
+DELETE FROM Step_link WHERE step_link_id = p_step_link_id;
+$$ LANGUAGE sql SECURITY DEFINER
+    SET search_path = public, pg_temp;
 
-
-
+COMMENT ON FUNCTION f_remove_process_link(p_process_link_id Process_link.process_link_id%TYPE)
+    IS 'This function is used to remove an associated link from an existing step.';
 
 -- Decision tables
 
