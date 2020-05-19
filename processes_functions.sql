@@ -297,7 +297,7 @@ DECLARE
 BEGIN
     INSERT INTO Step(process_id, description) VALUES (p_process_id, p_description) RETURNING step_id INTO v_step_id;
     INSERT INTO Decision(decision_id) VALUES (v_step_id);
-    UPDATE Step SET next_step_id = step_id WHERE Step.step_id = p_previous_step_id;
+    UPDATE Step SET next_step_id = v_step_id WHERE Step.step_id = p_previous_step_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER
                     SET search_path = public, pg_temp;
