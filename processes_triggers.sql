@@ -168,7 +168,7 @@ EXECUTE FUNCTION processes.f_change_process_name_or_description();
 CREATE OR REPLACE FUNCTION processes.f_add_next_step_to_decision() RETURNS trigger AS
 $$
 BEGIN
-    IF EXISTS(SELECT 1 FROM processes.Decision WHERE decision_id = NEW.step_id) THEN
+    IF EXISTS(SELECT 1 FROM processes.Decision WHERE decision_id = NEW.step_id FOR UPDATE) THEN
         RAISE EXCEPTION 'processes.Decision step cannot have an associated next step. The decision''s options must be linked to the next step.';
     ELSE
         RETURN NEW;
