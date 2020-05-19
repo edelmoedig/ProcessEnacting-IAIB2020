@@ -41,53 +41,53 @@ EXECUTE FUNCTION f_change_process_status();
 
 
 
-CREATE OR REPLACE FUNCTION f_activate_process_variants_no_next_step() RETURNS trigger AS
+CREATE OR REPLACE FUNCTION f_activate_process_options_no_next_step() RETURNS trigger AS
 $$
 DECLARE
     count bigint;
 BEGIN
     count := (SELECT COUNT(*)
-              FROM (SELECT Variant.next_step_id
-                    FROM Variant
+              FROM (SELECT Option.next_step_id
+                    FROM Option
                              INNER JOIN (Decision INNER JOIN (Step INNER JOIN Process
                         ON Step.process_id = Process.process_id)
                         ON step_id = decision_id)
-                                        ON Variant.decision_id = Decision.decision_id
-                    WHERE Variant.next_step_id IS NULL) AS Variant_with_no_next_step);
+                                        ON Option.decision_id = Decision.decision_id
+                    WHERE Option.next_step_id IS NULL) AS Option_with_no_next_step);
     IF count > 0 THEN
-        RAISE EXCEPTION 'There are % variants at the decision steps of this process
-        that have no next step assigned to them. Every variant must lead to the next
+        RAISE EXCEPTION 'There are % options at the decision steps of this process
+        that have no next step assigned to them. Every option must lead to the next
         step.', count;
     END IF;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER
                     SET search_path = public, pg_temp;
 
-COMMENT ON FUNCTION f_activate_process_variants_no_next_step() IS 'This function ensures that only processes where every option has an associated next step can be activated.';
+COMMENT ON FUNCTION f_activate_process_options_no_next_step() IS 'This function ensures that only processes where every option has an associated next step can be activated.';
 
-CREATE TRIGGER trig_activate_process_variants_no_next_step
+CREATE TRIGGER trig_activate_process_options_no_next_step
     BEFORE UPDATE OF process_status_type_code
     ON Process
     FOR EACH ROW
     WHEN (OLD.process_status_type_code <> NEW.process_status_type_code AND NEW.process_status_type_code = 2)
-EXECUTE FUNCTION f_activate_process_variants_no_next_step();
+EXECUTE FUNCTION f_activate_process_options_no_next_step();
 
 
 
-CREATE OR REPLACE FUNCTION f_activate_process_decision_less_than_2_variants() RETURNS trigger AS
+CREATE OR REPLACE FUNCTION f_activate_process_decision_less_than_2_options() RETURNS trigger AS
 $$
 DECLARE
     count bigint;
 BEGIN
     count := (SELECT Count(*)
               FROM (SELECT Decision.decision_id, Count(*)
-                    FROM Variant
+                    FROM Option
                              INNER JOIN (Decision INNER JOIN (Step INNER JOIN Process
                         ON Step.process_id = Process.process_id)
                         ON step_id = decision_id)
-                                        ON Variant.decision_id = Decision.decision_id
+                                        ON Option.decision_id = Decision.decision_id
                     GROUP BY Decision.decision_id
-                    HAVING Count(*) < 2) AS Decision_variant_count);
+                    HAVING Count(*) < 2) AS Decision_option_count);
     IF count > 0 THEN
         RAISE EXCEPTION 'There are % decision steps that have less than 2 options.', count;
     END IF;
@@ -95,14 +95,14 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER
                     SET search_path = public, pg_temp;
 
-COMMENT ON FUNCTION f_activate_process_decision_less_than_2_variants() IS 'This function ensures that only processes where every decision step has at least 2 associated options can be activated.';
+COMMENT ON FUNCTION f_activate_process_decision_less_than_2_options() IS 'This function ensures that only processes where every decision step has at least 2 associated options can be activated.';
 
-CREATE TRIGGER trig_activate_process_decision_less_than_2_variants
+CREATE TRIGGER trig_activate_process_decision_less_than_2_options
     BEFORE UPDATE OF process_status_type_code
     ON Process
     FOR EACH ROW
     WHEN (OLD.process_status_type_code <> NEW.process_status_type_code AND NEW.process_status_type_code = 2)
-EXECUTE FUNCTION f_activate_process_variants_no_next_step();
+EXECUTE FUNCTION f_activate_process_options_no_next_step();
 
 
 
