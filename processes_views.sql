@@ -1,7 +1,7 @@
 CREATE OR REPLACE VIEW all_processes WITH (security_barrier) AS
 SELECT Process.process_id,
-       Process.name,
-       Process.description,
+       Process.name                                                                     AS process_name,
+       Process.description                                                              AS process_description,
        Process.password IS NOT NULL                                                     AS has_password,
        Process_status_type.name                                                         AS current_status,
        format('%1$s %2$s', trim(Administrator.given_name), trim(Administrator.surname)) AS owner,
@@ -14,8 +14,8 @@ COMMENT ON VIEW all_processes IS 'This view shows basic information about every 
 
 CREATE OR REPLACE VIEW active_and_inactive_processes WITH (security_barrier) AS
 SELECT Process.process_id,
-       Process.name,
-       Process.description,
+       Process.name                                                                     AS process_name,
+       Process.description                                                              AS process_description,
        Process.password IS NOT NULL                                                     AS has_password,
        Process_status_type.name                                                         AS current_status,
        format('%1$s %2$s', trim(Administrator.given_name), trim(Administrator.surname)) AS owner,
