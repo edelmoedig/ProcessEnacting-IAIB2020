@@ -135,9 +135,9 @@ COMMENT ON FUNCTION f_add_first_action(p_process_id Step.process_id%TYPE,
 
 
 
-CREATE OR REPLACE FUNCTION f_add_action_to_prev_step(p_process_id Step.process_id%TYPE,
-                                                     p_previous_step_id Step.next_step_id%TYPE,
-                                                     p_description Step.description%TYPE)
+CREATE OR REPLACE FUNCTION f_add_action_to_step(p_process_id Step.process_id%TYPE,
+                                                p_previous_step_id Step.next_step_id%TYPE,
+                                                p_description Step.description%TYPE)
     RETURNS VOID AS $$
 BEGIN
     INSERT INTO Step(process_id, description) VALUES (p_process_id, p_description) RETURNING step_id;
@@ -147,10 +147,32 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER
                     SET search_path = public, pg_temp;
 
-COMMENT ON FUNCTION f_add_action_to_prev_step(p_process_id Step.process_id%TYPE,
+COMMENT ON FUNCTION f_add_action_to_step(p_process_id Step.process_id%TYPE,
     p_previous_step_id Step.next_step_id%TYPE,
     p_description Step.description%TYPE)
-    IS 'This function is used to add an action step connected to an existing previous step.';
+    IS 'This function is used to add an action step connected to an existing previous step that does not lead to an existing step.';
+
+
+
+CREATE OR REPLACE FUNCTION f_add_action_to_step_existing_next(p_process_id Step.process_id%TYPE,
+                                                              p_previous_step_id Step.next_step_id%TYPE,
+                                                              p_next_step_id Step.next_step_id%TYPE,
+                                                              p_description Step.description%TYPE)
+    RETURNS VOID AS $$
+BEGIN
+    INSERT INTO Step(process_id, next_step_id, description)
+    VALUES (p_process_id, p_next_step_id, p_description)
+    RETURNING step_id;
+    INSERT INTO Action(action_id) VALUES (step_id);
+    UPDATE Step SET next_step_id = step_id WHERE Step.step_id = p_previous_step_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER
+                    SET search_path = public, pg_temp;
+
+COMMENT ON FUNCTION f_add_action_to_step_existing_next(p_process_id Step.process_id%TYPE,
+    p_previous_step_id Step.next_step_id%TYPE,
+    p_description Step.description%TYPE)
+    IS 'This function is used to add an action step connected to an existing previous step that leads to an existing step.';
 
 
 
@@ -183,9 +205,33 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER
                     SET search_path = public, pg_temp;
 
-COMMENT ON FUNCTION f_add_first_parallel_activity(p_process_id Step.process_id%TYPE,
+COMMENT ON FUNCTION f_add_parallel_activity_to_step(p_process_id Step.process_id%TYPE,
+    p_previous_step_id Step.next_step_id%TYPE,
     p_description Step.description%TYPE)
-    IS 'This function is used to add a parallel activity connected to an existing previous step.';
+    IS 'This function is used to add a parallel activity connected to an existing previous step that does not lead to an existing step.';
+
+
+
+CREATE OR REPLACE FUNCTION f_add_parallel_activity_to_step_existing_next(p_process_id Step.process_id%TYPE,
+                                                                         p_previous_step_id Step.next_step_id%TYPE,
+                                                                         p_next_step_id Step.next_step_id%TYPE,
+                                                                         p_description Step.description%TYPE)
+    RETURNS VOID AS $$
+BEGIN
+    INSERT INTO Step(process_id, next_step_id, description)
+    VALUES (p_process_id, p_next_step_id, p_description)
+    RETURNING step_id;
+    INSERT INTO Parallel_activity(parallel_activity_id) VALUES (step_id);
+    UPDATE Step SET next_step_id = step_id WHERE Step.step_id = p_previous_step_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER
+                    SET search_path = public, pg_temp;
+
+COMMENT ON FUNCTION f_add_parallel_activity_to_step_existing_next(p_process_id Step.process_id%TYPE,
+    p_previous_step_id Step.next_step_id%TYPE,
+    p_next_step_id Step.next_step_id%TYPE,
+    p_description Step.description%TYPE)
+    IS 'This function is used to add a parallel activity connected to an existing previous step that leads to an existing step.';
 
 
 
@@ -240,7 +286,29 @@ $$ LANGUAGE plpgsql SECURITY DEFINER
 COMMENT ON FUNCTION f_add_decision_to_step(p_process_id Step.process_id%TYPE,
     p_previous_step_id Step.next_step_id%TYPE,
     p_description Step.description%TYPE)
-    IS 'This function is used to add a decision step connected to an existing previous step.';
+    IS 'This function is used to add a decision step connected to an existing previous step that does not lead to an existing step.';
+
+
+
+CREATE OR REPLACE FUNCTION f_add_decision_to_step_existing_next(p_process_id Step.process_id%TYPE,
+                                                                p_previous_step_id Step.next_step_id%TYPE,
+                                                                p_next_step_id Step.next_step_id%TYPE,
+                                                                p_description Step.description%TYPE)
+    RETURNS VOID AS $$
+BEGIN
+    INSERT INTO Step(process_id, next_step_id, description)
+    VALUES (p_process_id, p_next_step_id, p_description)
+    RETURNING step_id;
+    INSERT INTO Decision(decision_id) VALUES (step_id);
+    UPDATE Step SET next_step_id = step_id WHERE Step.step_id = p_previous_step_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER
+                    SET search_path = public, pg_temp;
+
+COMMENT ON FUNCTION f_add_decision_to_step(p_process_id Step.process_id%TYPE,
+    p_previous_step_id Step.next_step_id%TYPE,
+    p_description Step.description%TYPE)
+    IS 'This function is used to add a decision step connected to an existing previous step that leads to an existing step.';
 
 
 
@@ -492,4 +560,3 @@ $$ LANGUAGE sql SECURITY DEFINER
 COMMENT ON FUNCTION f_log_step_click(p_process_usage_id Step_click.process_usage_id%TYPE,
     p_step_id Step_click.step_id%TYPE)
     IS 'This function is used to log a chosen step.';
-
