@@ -247,7 +247,9 @@ EXECUTE FUNCTION processes.f_forget_process();
 
 CREATE OR REPLACE FUNCTION processes.f_edit_process_step() RETURNS trigger AS $$
 BEGIN
-    IF ((SELECT processes.Process.process_status_type_code FROM processes.Process WHERE processes.Process.process_id = OLD.process_id FOR UPDATE) NOT IN
+    IF ((SELECT processes.Process.process_status_type_code
+         FROM processes.Process
+         WHERE processes.Process.process_id = OLD.process_id FOR UPDATE) NOT IN
         (1, 3)) THEN
         RAISE EXCEPTION 'Process''s steps can only be edited if it''s status is "On hold" or "Inactive".';
     ELSE
@@ -269,7 +271,9 @@ EXECUTE FUNCTION processes.f_edit_process_step();
 
 CREATE FUNCTION processes.f_remove_process_step() RETURNS trigger AS $$
 BEGIN
-    IF ((SELECT processes.Process.process_status_type_code FROM processes.Process WHERE processes.Process.process_id = OLD.process_id FOR UPDATE) <> 1) THEN
+    IF ((SELECT processes.Process.process_status_type_code
+         FROM processes.Process
+         WHERE processes.Process.process_id = OLD.process_id FOR UPDATE) <> 1) THEN
         RAISE EXCEPTION 'Process''s steps can only be removed if it''s status is "On hold".';
     ELSE
         RETURN OLD;
@@ -374,7 +378,9 @@ EXECUTE FUNCTION processes.f_remove_decision_option_with_next_step();
 
 CREATE FUNCTION processes.f_add_step() RETURNS trigger AS $$
 BEGIN
-    IF ((SELECT processes.Process.process_status_type_code FROM processes.Process WHERE processes.Process.process_id = NEW.process_id FOR UPDATE) <> 1) THEN
+    IF ((SELECT processes.Process.process_status_type_code
+         FROM processes.Process
+         WHERE processes.Process.process_id = NEW.process_id FOR UPDATE) <> 1) THEN
         RAISE EXCEPTION 'New steps cannot be added to published processes.';
     ELSE
         RETURN NEW;
