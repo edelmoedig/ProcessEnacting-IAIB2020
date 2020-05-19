@@ -171,6 +171,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER
 
 COMMENT ON FUNCTION f_add_action_to_step_existing_next(p_process_id Step.process_id%TYPE,
     p_previous_step_id Step.next_step_id%TYPE,
+    p_next_step_id Step.next_step_id%TYPE,
     p_description Step.description%TYPE)
     IS 'This function is used to add an action step connected to an existing previous step that leads to an existing step.';
 
