@@ -102,8 +102,8 @@ CREATE TABLE Parallel_activity
 
 CREATE TABLE Action_in_parallel_activity
 (
-    parallel_activity_id integer   NOT NULL,
     action_id            integer   NOT NULL,
+    parallel_activity_id integer   NOT NULL,
     reg_time             timestamp NOT NULL DEFAULT LOCALTIMESTAMP(0),
     CONSTRAINT PK_Action_in_parallel_activity PRIMARY KEY (action_id),
     CONSTRAINT FK_Action_in_parallel_activity_Parallel_activity FOREIGN KEY (parallel_activity_id) REFERENCES Parallel_activity (parallel_activity_id) ON DELETE Cascade ON UPDATE No Action,
