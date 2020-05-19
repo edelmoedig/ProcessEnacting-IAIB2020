@@ -162,3 +162,209 @@ CREATE TRIGGER trig_change_process_name_or_description
     WHEN (OLD.process_status_type_code NOT IN (1, 3) OR
           (OLD.process_status_type_code IN (1, 3) AND OLD.process_status_type_code <> NEW.process_status_type_code))
 EXECUTE FUNCTION f_change_process_name_or_description();
+
+
+
+CREATE OR REPLACE FUNCTION f_add_next_step_to_decision() RETURNS trigger AS
+$$
+BEGIN
+    IF EXISTS(SELECT 1 FROM Decision WHERE decision_id = NEW.step_id) THEN
+        RAISE EXCEPTION 'Decision step cannot have an associated next step. The decision''s options must be linked to the next step.';
+    ELSE
+        RETURN NEW;
+    END IF;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path = public, pg_temp;
+
+COMMENT ON FUNCTION f_add_next_step_to_decision() IS 'This function prevents adding a next step to a decision.';
+
+CREATE TRIGGER trig_add_next_step_to_decision
+    BEFORE UPDATE
+        OF next_step_id
+    ON Step
+    FOR EACH ROW
+EXECUTE FUNCTION f_add_next_step_to_decision();
+
+
+
+CREATE OR REPLACE FUNCTION f_change_process_first_step() RETURNS trigger AS $$
+BEGIN
+    RAISE EXCEPTION 'Process''s first step cannot be reassigned without deleting the currently associated next step.';
+END;
+
+$$ LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path = public, pg_temp;
+
+COMMENT ON FUNCTION f_change_process_first_step() IS 'This function prevents reassigning the first step of a process.';
+
+CREATE TRIGGER trig_change_process_next_step
+    BEFORE UPDATE
+        OF first_step_id
+    ON Process
+    FOR EACH ROW
+    WHEN (OLD.first_step_id IS NOT NULL AND NEW.first_step_id IS NOT NULL)
+EXECUTE FUNCTION f_change_process_first_step();
+
+
+
+CREATE OR REPLACE FUNCTION f_change_step_next_step() RETURNS trigger AS $$
+BEGIN
+    RAISE EXCEPTION 'Step''s next step cannot be reassigned without deleting the currently associated next step.';
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER
+                    SET search_path = public, pg_temp;
+
+COMMENT ON FUNCTION f_change_step_next_step() IS 'This function prevents reassigning the next step of a step.';
+
+CREATE TRIGGER trig_change_step_next_step
+    BEFORE UPDATE
+        OF next_step_id
+    ON Step
+    FOR EACH ROW
+    WHEN (OLD.next_step_id IS NOT NULL AND NEW.next_step_id IS NOT NULL)
+EXECUTE FUNCTION f_change_process_first_step();
+
+
+
+CREATE OR REPLACE FUNCTION f_forget_process() RETURNS trigger AS $$
+BEGIN
+    RAISE EXCEPTION 'Process can only be removed if it''s status is "On hold".';
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER
+                    SET search_path = public, pg_temp;
+
+COMMENT ON FUNCTION f_forget_process() IS 'This function prevents deleting of published processes.';
+
+CREATE TRIGGER trig_forget_process
+    BEFORE DELETE
+    ON Process
+    FOR EACH ROW
+    WHEN (OLD.process_status_type_code <> 1)
+EXECUTE FUNCTION f_forget_process();
+
+
+
+CREATE OR REPLACE FUNCTION f_edit_process_step() RETURNS trigger AS $$
+BEGIN
+    IF ((SELECT Process.process_status_type_code FROM Process WHERE Process.process_id = OLD.process_id) NOT IN (1, 3)) THEN
+        RAISE EXCEPTION 'Process''s steps can only be edited if it''s status is "On hold" or "Inactive".';
+    ELSE
+        RETURN NEW;
+    END IF;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER
+                    SET search_path = public, pg_temp;
+
+COMMENT ON FUNCTION f_edit_process_step() IS 'This function prevents editing of active processes.';
+
+CREATE TRIGGER trig_edit_process_step
+    BEFORE UPDATE
+    ON Step
+    FOR EACH ROW
+EXECUTE FUNCTION f_edit_process_step();
+
+
+
+CREATE FUNCTION f_remove_process_step() RETURNS trigger AS $$
+BEGIN
+    IF ((SELECT Process.process_status_type_code FROM Process WHERE Process.process_id = OLD.process_id) <> 1) THEN
+        RAISE EXCEPTION 'Process''s steps can only be removed if it''s status is "On hold".';
+    ELSE
+        RETURN NEW;
+    END IF;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER
+                    SET search_path = public, pg_temp;
+
+COMMENT ON FUNCTION f_remove_process_step() IS 'This function prevents removal of steps from published processes.';
+
+CREATE TRIGGER trig_remove_process_step
+    BEFORE DELETE
+    ON Step
+    FOR EACH ROW
+EXECUTE FUNCTION f_remove_process_step();
+
+
+
+CREATE FUNCTION f_edit_decision_option() RETURNS trigger AS $$
+BEGIN
+    IF ((SELECT Process.process_status_type_code FROM Process INNER JOIN (Option INNER JOIN (Decision INNER JOIN Step ON Decision.decision_id = Step.step_id) ON OLD.decision_id = Decision.decision_id) ON Process.process_id = Step.process_id) NOT IN (1, 3)) THEN
+        RAISE EXCEPTION 'Decision''s options can only be edited if its associated process''s status is "On hold" or "Inactive".';
+    ELSE
+        RETURN NEW;
+    END IF;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER
+                    SET search_path = public, pg_temp;
+
+COMMENT ON FUNCTION f_edit_decision_option() IS 'This function prevents editing of options associated with active processes.';
+
+CREATE TRIGGER trig_edit_decision_option
+    BEFORE UPDATE
+    ON Option
+    FOR EACH ROW
+EXECUTE FUNCTION f_edit_decision_option();
+
+
+
+CREATE FUNCTION f_remove_decision_option() RETURNS trigger AS $$
+BEGIN
+    IF ((SELECT Process.process_status_type_code FROM Process INNER JOIN (Option INNER JOIN (Decision INNER JOIN Step ON Decision.decision_id = Step.step_id) ON OLD.decision_id = Decision.decision_id) ON Process.process_id = Step.process_id) <> 1) THEN
+        RAISE EXCEPTION 'Decision''s options can only be removed if its associated process''s status is "On hold".';
+    ELSE
+        RETURN OLD;
+    END IF;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path = public, pg_temp;
+
+COMMENT ON FUNCTION f_remove_decision_option() IS 'This function prevents removal of options associated with published processes.';
+
+CREATE TRIGGER trig_remove_decision_option
+    BEFORE DELETE
+    ON Option
+    FOR EACH ROW
+EXECUTE FUNCTION f_remove_decision_option();
+
+
+
+CREATE FUNCTION f_add_step() RETURNS trigger AS $$
+BEGIN
+    IF ((SELECT Process.process_status_type_code FROM Process WHERE Process.process_id = NEW.process_id) <> 1) THEN
+        RAISE EXCEPTION 'New steps cannot be added to published processes.';
+    ELSE
+        RETURN NEW;
+    END IF;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER
+                    SET search_path = public, pg_temp;
+
+COMMENT ON FUNCTION f_add_step() IS 'This function prevents adding steps to published processes.';
+
+CREATE TRIGGER trig_add_step
+    BEFORE INSERT
+    ON Step
+    FOR EACH ROW
+EXECUTE FUNCTION f_add_step();
+
+
+
+CREATE FUNCTION f_add_option() RETURNS trigger AS $$
+BEGIN
+    IF ((SELECT Process.process_status_type_code FROM Process INNER JOIN (Option INNER JOIN (Decision INNER JOIN Step ON Decision.decision_id = Step.step_id) ON NEW.decision_id = Decision.decision_id) ON Process.process_id = Step.process_id) <> 1) THEN
+        RAISE EXCEPTION 'New options cannot be added at decision steps of published processes.';
+    ELSE
+        RETURN NEW;
+    END IF;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER
+                    SET search_path = public, pg_temp;
+
+COMMENT ON FUNCTION f_add_option() IS 'This function prevents adding options associated with published processes.';
+
+CREATE TRIGGER trig_add_option
+    BEFORE INSERT
+    ON Option
+    FOR EACH ROW
+EXECUTE FUNCTION f_add_option();
