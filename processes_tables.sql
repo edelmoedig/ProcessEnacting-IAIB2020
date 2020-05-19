@@ -135,6 +135,7 @@ CREATE TABLE Option
     CONSTRAINT PK_Option PRIMARY KEY (option_id),
     CONSTRAINT CHK_Option_guard_not_only_whitespace CHECK (guard !~ '^[[:space:]]*$'),
     CONSTRAINT CHK_Option_next_step_not_its_parent CHECK (next_step_id <> decision_id),
+    CONSTRAINT CHK_Option_guard_max_length CHECK (char_length(guard) <= 1000),
     CONSTRAINT AK_Option_decision_guard UNIQUE (decision_id, guard),
     CONSTRAINT FK_Option_Decision FOREIGN KEY (decision_id) REFERENCES Decision (decision_id) ON DELETE CASCADE ON UPDATE NO ACTION,
     CONSTRAINT FK_Option_Step FOREIGN KEY (next_step_id) REFERENCES Step (step_id) ON DELETE CASCADE ON UPDATE NO ACTION
@@ -199,6 +200,8 @@ CREATE TABLE Decision_table_entry
     CONSTRAINT AK_decision_table_entry_condition UNIQUE (condition, decision_table_id),
     CONSTRAINT CHK_Decision_table_entry_condition_not_only_whitespace CHECK (condition !~ '^[[:space:]]*$'),
     CONSTRAINT CHK_Decision_table_entry_action_not_only_whitespace CHECK (action !~ '^[[:space:]]*$'),
+    CONSTRAINT CHK_Decision_table_entry_condition_max_length CHECK (char_length(condition) <= 1000),
+    CONSTRAINT CHK_Decision_table_entry_action_max_length CHECK (char_length(action) <= 1000),
     CONSTRAINT FK_Decision_table_entry_Decision_table FOREIGN KEY (decision_table_id) REFERENCES Decision_table (decision_table_id) ON DELETE CASCADE ON UPDATE NO ACTION
 );
 
