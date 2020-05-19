@@ -42,7 +42,7 @@ CREATE TABLE Process_status_type
     name                     varchar(50) NOT NULL,
     CONSTRAINT PK_Process_status_type PRIMARY KEY (process_status_type_code),
     CONSTRAINT AK_Process_status_type_name UNIQUE (name),
-    CONSTRAINT CHK_Process_status_name_not_only_whitespace CHECK (name !~ '^[[:space:]]*$')
+    CONSTRAINT CHK_Process_status_type_name_not_only_whitespace CHECK (name !~ '^[[:space:]]*$')
 );
 
 CREATE TABLE Process
