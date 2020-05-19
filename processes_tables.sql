@@ -29,6 +29,7 @@ CREATE TABLE Administrator
     reg_time         timestamp    NOT NULL DEFAULT LOCALTIMESTAMP(0),
     CONSTRAINT PK_Administrator PRIMARY KEY (administrator_id),
     CONSTRAINT CHK_Administrator_must_have_a_name CHECK (given_name IS NOT NULL OR surname IS NOT NULL),
+    CONSTRAINT CHK_Administrator_password_not_only_whitespace CHECK (password !~ '^[[:space:]]*$'),
     CONSTRAINT CHK_Administrator_given_name_not_only_whitespace CHECK (given_name !~ '^[[:space:]]*$'),
     CONSTRAINT CHK_Administrator_surname_not_only_whitespace CHECK (surname !~ '^[[:space:]]*$'),
     CONSTRAINT CHK_Administrator_e_mail_at_least_one_at CHECK (email LIKE '%@%')
@@ -58,6 +59,7 @@ CREATE TABLE Process
     CONSTRAINT AK_Process_first_step_id UNIQUE (first_step_id),
     CONSTRAINT CHK_Process_name_not_only_whitespace CHECK (name !~ '^[[:space:]]*$'),
     CONSTRAINT CHK_Process_description_not_only_whitespace CHECK (description !~ '^[[:space:]]*$'),
+    CONSTRAINT CHK_Process_password_not_only_whitespace CHECK (password !~ '^[[:space:]]*$'),
     CONSTRAINT FK_Process_Process_status_type FOREIGN KEY (process_status_type_code) REFERENCES Process_status_type (process_status_type_code) ON DELETE No Action ON UPDATE Cascade,
     CONSTRAINT FK_Process_Administrator FOREIGN KEY (owner_id) REFERENCES Administrator (administrator_id) ON DELETE No Action ON UPDATE No Action
 ) WITH (fillfactor = 90);
