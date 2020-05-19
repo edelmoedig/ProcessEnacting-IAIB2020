@@ -49,6 +49,21 @@ COMMENT ON FUNCTION f_change_process_password(p_process_id Process.process_id%TY
 
 
 
+CREATE OR REPLACE FUNCTION f_change_password_name_and_description(p_process_id Process.process_id%TYPE, p_name Process.name%TYPE, p_description Process.description%TYPE)
+    RETURNS VOID AS $$
+UPDATE Process
+    SET name = p_name, description = p_description
+    WHERE process_id = p_process_id;
+$$ LANGUAGE sql SECURITY DEFINER
+                SET search_path = public, pg_temp;
+
+COMMENT ON FUNCTION f_change_password_name_and_description(p_process_id Process.process_id%TYPE,
+    p_name Process.name%TYPE,
+    p_description Process.description%TYPE)
+    IS 'This function is used to change an existing process''s name and description.';
+
+
+
 CREATE OR REPLACE FUNCTION f_activate_process(p_process_id Process.process_id%TYPE)
     RETURNS VOID AS $$
 UPDATE Process
@@ -178,6 +193,7 @@ CREATE OR REPLACE FUNCTION f_add_action_in_parallel_activity(p_process_id Step.p
     RETURNS VOID AS $$
 BEGIN
     INSERT INTO Step(process_id, description) VALUES (p_process_id, p_description) RETURNING step_id;
+    INSERT INTO Action(action_id) VALUES (step_id);
     INSERT INTO Action_in_parallel_activity(parallel_activity_id, action_id)
     VALUES (p_parallel_activity_id, step_id);
 END;
@@ -252,6 +268,19 @@ COMMENT ON FUNCTION f_remove_option_from_decision(p_option_id Option.decision_id
 
 
 
+CREATE OR REPLACE FUNCTION f_change_option_weight_and_guard(p_option_id Option.decision_id%TYPE, p_guard Option.guard%TYPE, p_weight Option.weight%TYPE)
+    RETURNS VOID AS $$
+    UPDATE Option SET guard = p_guard, weight = p_weight WHERE option_id = p_option_id;
+$$ LANGUAGE sql SECURITY DEFINER
+    SET search_path = public, pg_temp;
+
+COMMENT ON FUNCTION f_change_option_weight_and_guard(p_option_id Option.decision_id%TYPE,
+    p_guard Option.guard%TYPE,
+    p_weight Option.weight%TYPE)
+    IS 'This function is used to change an existing option''s associated text or weight.';
+
+
+
 CREATE OR REPLACE FUNCTION f_remove_step(p_step_id Step.step_id%TYPE)
     RETURNS VOID AS $$
 DELETE FROM Step WHERE step_id = p_step_id;
@@ -261,6 +290,17 @@ $$ LANGUAGE sql SECURITY DEFINER
 COMMENT ON FUNCTION f_remove_step(p_step_id Step.step_id%TYPE)
     IS 'This function is used to remove a step from an existing process.';
 
+
+
+CREATE OR REPLACE FUNCTION f_change_step_description(p_step_id Step.step_id%TYPE, p_description Step.description%TYPE)
+    RETURNS VOID AS $$
+UPDATE Step SET description = p_description WHERE step_id = p_step_id;
+$$ LANGUAGE sql SECURITY DEFINER
+                SET search_path = public, pg_temp;
+
+
+COMMENT ON FUNCTION f_change_step_description(p_step_id Step.step_id%TYPE, p_description Step.description%TYPE)
+    IS 'This function is used to change a step''s description.';
 
 
 -- Links
@@ -334,6 +374,17 @@ COMMENT ON FUNCTION f_add_decision_table(p_action_id Decision_table.action_id%TY
 
 
 
+CREATE OR REPLACE FUNCTION f_switch_activation_decision_table(p_decision_table_id Decision_table_entry.decision_table_id%TYPE)
+    RETURNS VOID AS $$
+UPDATE Decision_table SET is_active = NOT is_active WHERE decision_table_id = p_decision_table_id;
+$$ LANGUAGE sql SECURITY DEFINER
+                SET search_path = public, pg_temp;
+
+COMMENT ON FUNCTION f_switch_activation_decision_table(p_decision_table_id Decision_table_entry.decision_table_id%TYPE)
+    IS 'This function activates a decision table if it is deactivated and deactivates it if it activated.';
+
+
+
 CREATE OR REPLACE FUNCTION f_add_decision_table_entry(p_decision_table_id Decision_table_entry.decision_table_id%TYPE,
                                                       p_condition Decision_table_entry.condition%TYPE,
                                                       p_action Decision_table_entry.action%TYPE,
@@ -363,7 +414,7 @@ COMMENT ON FUNCTION f_remove_decision_table(p_decision_table_id Decision_table.d
 
 
 
-CREATE OR REPLACE FUNCTION f_remove_decision_table_entry(p_decision_table_entry_id decision_table_entry.decision_table_entry_id%TYPE)
+CREATE OR REPLACE FUNCTION f_remove_decision_table_entry(p_decision_table_entry_id Decision_table_entry.decision_table_entry_id%TYPE)
 RETURNS VOID AS $$
 DELETE FROM decision_table_entry WHERE decision_table_entry_id = p_decision_table_entry_id;
 $$ LANGUAGE sql SECURITY DEFINER
@@ -371,6 +422,22 @@ $$ LANGUAGE sql SECURITY DEFINER
 
 COMMENT ON FUNCTION f_remove_decision_table_entry(p_decision_table_entry_id decision_table_entry.decision_table_entry_id%TYPE)
     IS 'This function is used to remove a decision table entry from an existing decision table.';
+
+
+
+CREATE OR REPLACE FUNCTION f_change_decision_table_entry(p_decision_table_entry_id Decision_table_entry.decision_table_entry_id%TYPE, p_condition Decision_table_entry.condition%TYPE, p_action Decision_table_entry.action%TYPE, p_seq_nr Decision_table_entry.seq_nr%TYPE)
+RETURNS VOID AS $$
+    UPDATE Decision_table_entry
+    SET condition = p_condition, action = p_action, seq_nr = p_seq_nr
+    WHERE decision_table_entry_id = p_decision_table_entry_id;
+$$ LANGUAGE sql SECURITY DEFINER
+                SET search_path = public, pg_temp;
+
+COMMENT ON FUNCTION f_change_decision_table_entry(p_decision_table_entry_id Decision_table_entry.decision_table_entry_id%TYPE,
+    p_condition Decision_table_entry.condition%TYPE,
+    p_action Decision_table_entry.action%TYPE,
+    p_seq_nr Decision_table_entry.seq_nr%TYPE)
+    IS 'This function is used to change an existing decision table entry''s condition text, action text, and sequence number';
 
 
 
