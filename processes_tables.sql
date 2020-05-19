@@ -85,7 +85,7 @@ CREATE TABLE Step
     CONSTRAINT FK_Step_Step FOREIGN KEY (next_step_id) REFERENCES Step (step_id) ON DELETE SET NULL ON UPDATE NO ACTION,
     CONSTRAINT FK_Step_Process FOREIGN KEY (process_id) REFERENCES Process (process_id) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) WITH (FILLFACTOR = 90);
-CREATE INDEX IX_Step_Process ON Step (step_id ASC);
+CREATE INDEX IX_Step_Process ON Step (process_id ASC);
 CREATE INDEX IX_Step_next_step ON Step (next_step_id ASC);
 
 /* Add First_step FK to Process */
