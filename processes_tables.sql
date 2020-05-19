@@ -73,6 +73,7 @@ CREATE TABLE Step
     next_step_id integer   NULL,
     CONSTRAINT PK_Step PRIMARY KEY (step_id),
     CONSTRAINT CHK_Step_description_not_only_whitespace CHECK (description !~ '^[[:space:]]*$'),
+    CONSTRAINT CHK_Step_next_step_not_itself CHECK (next_step_id <> step_id),
     CONSTRAINT FK_Step_Step FOREIGN KEY (next_step_id) REFERENCES Step (step_id) ON DELETE Set Null ON UPDATE No Action,
     CONSTRAINT FK_Step_Process FOREIGN KEY (process_id) REFERENCES Process (process_id) ON DELETE No Action ON UPDATE No Action
 ) WITH (fillfactor = 90);
@@ -125,6 +126,7 @@ CREATE TABLE Option
     guard        text           NOT NULL,
     CONSTRAINT PK_Option PRIMARY KEY (option_id),
     CONSTRAINT CHK_Option_guard_not_only_whitespace CHECK (guard !~ '^[[:space:]]*$'),
+    CONSTRAINT CHK_Option_next_step_not_its_parent CHECK (next_step_id <> decision_id),
     CONSTRAINT AK_Option_decision_guard UNIQUE (decision_id, guard),
     CONSTRAINT FK_Option_Decision FOREIGN KEY (decision_id) REFERENCES Decision (decision_id) ON DELETE Cascade ON UPDATE No Action,
     CONSTRAINT FK_Option_Step FOREIGN KEY (next_step_id) REFERENCES Step (step_id) ON DELETE Cascade ON UPDATE No Action
