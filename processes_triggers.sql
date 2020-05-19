@@ -175,7 +175,7 @@ BEGIN
     END IF;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER
-    SET search_path = public, pg_temp;
+                    SET search_path = public, pg_temp;
 
 COMMENT ON FUNCTION f_add_next_step_to_decision() IS 'This function prevents adding a next step to a decision.';
 
@@ -194,7 +194,7 @@ BEGIN
 END;
 
 $$ LANGUAGE plpgsql SECURITY DEFINER
-    SET search_path = public, pg_temp;
+                    SET search_path = public, pg_temp;
 
 COMMENT ON FUNCTION f_change_process_first_step() IS 'This function prevents reassigning the first step of a process.';
 
@@ -247,7 +247,8 @@ EXECUTE FUNCTION f_forget_process();
 
 CREATE OR REPLACE FUNCTION f_edit_process_step() RETURNS trigger AS $$
 BEGIN
-    IF ((SELECT Process.process_status_type_code FROM Process WHERE Process.process_id = OLD.process_id) NOT IN (1, 3)) THEN
+    IF ((SELECT Process.process_status_type_code FROM Process WHERE Process.process_id = OLD.process_id) NOT IN
+        (1, 3)) THEN
         RAISE EXCEPTION 'Process''s steps can only be edited if it''s status is "On hold" or "Inactive".';
     ELSE
         RETURN NEW;
@@ -289,7 +290,10 @@ EXECUTE FUNCTION f_remove_process_step();
 
 CREATE FUNCTION f_edit_decision_option() RETURNS trigger AS $$
 BEGIN
-    IF ((SELECT Process.process_status_type_code FROM Process INNER JOIN (Option INNER JOIN (Decision INNER JOIN Step ON Decision.decision_id = Step.step_id) ON OLD.decision_id = Decision.decision_id) ON Process.process_id = Step.process_id) NOT IN (1, 3)) THEN
+    IF ((SELECT Process.process_status_type_code
+         FROM Process
+                  INNER JOIN (Option INNER JOIN (Decision INNER JOIN Step ON Decision.decision_id = Step.step_id) ON OLD.decision_id = Decision.decision_id)
+                             ON Process.process_id = Step.process_id) NOT IN (1, 3)) THEN
         RAISE EXCEPTION 'Decision''s options can only be edited if its associated process''s status is "On hold" or "Inactive".';
     ELSE
         RETURN NEW;
@@ -310,14 +314,17 @@ EXECUTE FUNCTION f_edit_decision_option();
 
 CREATE FUNCTION f_remove_decision_option() RETURNS trigger AS $$
 BEGIN
-    IF ((SELECT Process.process_status_type_code FROM Process INNER JOIN (Option INNER JOIN (Decision INNER JOIN Step ON Decision.decision_id = Step.step_id) ON OLD.decision_id = Decision.decision_id) ON Process.process_id = Step.process_id) <> 1) THEN
+    IF ((SELECT Process.process_status_type_code
+         FROM Process
+                  INNER JOIN (Option INNER JOIN (Decision INNER JOIN Step ON Decision.decision_id = Step.step_id) ON OLD.decision_id = Decision.decision_id)
+                             ON Process.process_id = Step.process_id) <> 1) THEN
         RAISE EXCEPTION 'Decision''s options can only be removed if its associated process''s status is "On hold".';
     ELSE
         RETURN OLD;
     END IF;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER
-    SET search_path = public, pg_temp;
+                    SET search_path = public, pg_temp;
 
 COMMENT ON FUNCTION f_remove_decision_option() IS 'This function prevents removal of options associated with published processes.';
 
@@ -352,7 +359,10 @@ EXECUTE FUNCTION f_add_step();
 
 CREATE FUNCTION f_add_option() RETURNS trigger AS $$
 BEGIN
-    IF ((SELECT Process.process_status_type_code FROM Process INNER JOIN (Option INNER JOIN (Decision INNER JOIN Step ON Decision.decision_id = Step.step_id) ON NEW.decision_id = Decision.decision_id) ON Process.process_id = Step.process_id) <> 1) THEN
+    IF ((SELECT Process.process_status_type_code
+         FROM Process
+                  INNER JOIN (Option INNER JOIN (Decision INNER JOIN Step ON Decision.decision_id = Step.step_id) ON NEW.decision_id = Decision.decision_id)
+                             ON Process.process_id = Step.process_id) <> 1) THEN
         RAISE EXCEPTION 'New options cannot be added at decision steps of published processes.';
     ELSE
         RETURN NEW;
