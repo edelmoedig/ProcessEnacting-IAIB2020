@@ -102,7 +102,7 @@ CREATE TRIGGER trig_activate_process_decision_less_than_2_options
     ON processes.Process
     FOR EACH ROW
     WHEN (OLD.process_status_type_code <> NEW.process_status_type_code AND NEW.process_status_type_code = 2)
-EXECUTE FUNCTION processes.f_activate_process_options_no_next_step();
+EXECUTE FUNCTION processes.f_activate_process_decision_less_than_2_options();
 
 
 
@@ -223,7 +223,7 @@ CREATE TRIGGER trig_change_step_next_step
     ON processes.Step
     FOR EACH ROW
     WHEN (OLD.next_step_id IS NOT NULL AND NEW.next_step_id IS NOT NULL)
-EXECUTE FUNCTION processes.f_change_process_first_step();
+EXECUTE FUNCTION processes.f_change_step_next_step();
 
 
 
