@@ -39,7 +39,7 @@ CREATE TABLE Administrator
     CONSTRAINT CHK_Administrator_given_name_not_only_whitespace CHECK (given_name !~ '^[[:space:]]*$'),
     CONSTRAINT CHK_Administrator_surname_not_only_whitespace CHECK (surname !~ '^[[:space:]]*$'),
     CONSTRAINT CHK_Administrator_e_mail_at_least_one_at CHECK (email LIKE '%@%')
-);
+) WITH (FILLFACTOR = 90);
 CREATE UNIQUE INDEX IX_Administrator_email_unique ON Administrator (lower(email));
 
 CREATE TABLE Process_status_type
@@ -139,7 +139,7 @@ CREATE TABLE Option
     CONSTRAINT AK_Option_decision_guard UNIQUE (decision_id, guard),
     CONSTRAINT FK_Option_Decision FOREIGN KEY (decision_id) REFERENCES Decision (decision_id) ON DELETE CASCADE ON UPDATE NO ACTION,
     CONSTRAINT FK_Option_Step FOREIGN KEY (next_step_id) REFERENCES Step (step_id) ON DELETE CASCADE ON UPDATE NO ACTION
-);
+) WITH (FILLFACTOR = 90);
 CREATE INDEX IX_Option_next_step ON Option (next_step_id ASC);
 
 CREATE TABLE Process_link
@@ -156,7 +156,7 @@ CREATE TABLE Process_link
     CONSTRAINT CHK_Process_link_url_not_only_whitespace CHECK (url !~ '^[[:space:]]*$'),
     CONSTRAINT CHK_Process_link_name_not_only_whitespace CHECK (name !~ '^[[:space:]]*$'),
     CONSTRAINT FK_Process_link_Process FOREIGN KEY (process_id) REFERENCES Process (process_id) ON DELETE CASCADE ON UPDATE NO ACTION
-);
+) WITH (FILLFACTOR = 90);
 
 CREATE TABLE Step_link
 (
@@ -172,7 +172,7 @@ CREATE TABLE Step_link
     CONSTRAINT CHK_Step_link_url_not_only_whitespace CHECK (url !~ '^[[:space:]]*$'),
     CONSTRAINT CHK_Step_link_name_not_only_whitespace CHECK (name !~ '^[[:space:]]*$'),
     CONSTRAINT FK_Step_link_Step FOREIGN KEY (step_id) REFERENCES Step (step_id) ON DELETE CASCADE ON UPDATE NO ACTION
-);
+) WITH (FILLFACTOR = 90);
 
 CREATE TABLE Decision_table
 (
@@ -184,7 +184,7 @@ CREATE TABLE Decision_table
     CONSTRAINT PK_Decision_table PRIMARY KEY (decision_table_id),
     CONSTRAINT CHK_Decision_table_name_not_only_whitespace CHECK (name !~ '^[[:space:]]*$'),
     CONSTRAINT FK_Decision_table_Action FOREIGN KEY (action_id) REFERENCES Action (action_id) ON DELETE CASCADE ON UPDATE NO ACTION
-);
+) WITH (FILLFACTOR = 90);
 CREATE INDEX IX_Decision_table_action_id ON Decision_table (action_id ASC);
 
 CREATE TABLE Decision_table_entry
@@ -203,7 +203,7 @@ CREATE TABLE Decision_table_entry
     CONSTRAINT CHK_Decision_table_entry_condition_max_length CHECK (char_length(condition) <= 1000),
     CONSTRAINT CHK_Decision_table_entry_action_max_length CHECK (char_length(action) <= 1000),
     CONSTRAINT FK_Decision_table_entry_Decision_table FOREIGN KEY (decision_table_id) REFERENCES Decision_table (decision_table_id) ON DELETE CASCADE ON UPDATE NO ACTION
-);
+) WITH (FILLFACTOR = 90);
 
 CREATE TABLE Process_usage
 (
