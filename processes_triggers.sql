@@ -420,3 +420,135 @@ CREATE TRIGGER trig_add_option
     ON processes.Option
     FOR EACH ROW
 EXECUTE FUNCTION processes.f_add_option();
+
+
+
+CREATE FUNCTION processes.f_add_process_link() RETURNS trigger AS $$
+BEGIN
+    IF ((SELECT processes.Process.process_status_type_code
+         FROM processes.Process
+                  INNER JOIN processes.Process_link
+                             ON processes.Process.process_id = processes.Process_link.process_id FOR UPDATE) NOT IN
+        (1, 3)) THEN
+        RAISE EXCEPTION 'New project links cannot be added to active and ended processes.';
+    ELSE
+        RETURN NEW;
+    END IF;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER
+                    SET search_path = processes, public, pg_temp;
+
+COMMENT ON FUNCTION processes.f_add_process_link() IS 'This function prevents adding new links to active and ended processes.';
+
+CREATE TRIGGER trig_add_process_link
+    BEFORE INSERT
+    ON processes.Process_link
+    FOR EACH ROW
+EXECUTE FUNCTION processes.f_add_process_link();
+
+
+
+CREATE FUNCTION processes.f_remove_process_link() RETURNS trigger AS $$
+BEGIN
+    IF ((SELECT processes.Process.process_status_type_code
+         FROM processes.Process
+                  INNER JOIN processes.Process_link
+                             ON processes.Process.process_id = processes.Process_link.process_id FOR UPDATE) NOT IN
+        (1, 3)) THEN
+        RAISE EXCEPTION 'Project links cannot be removed from active and ended processes.';
+    ELSE
+        RETURN OLD;
+    END IF;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER
+                    SET search_path = processes, public, pg_temp;
+
+COMMENT ON FUNCTION processes.f_remove_process_link() IS 'This function prevents removing existing links from active and ended processes.';
+
+CREATE TRIGGER trig_remove_process_link
+    BEFORE DELETE
+    ON processes.Process_link
+    FOR EACH ROW
+EXECUTE FUNCTION processes.f_remove_process_link();
+
+
+
+CREATE FUNCTION processes.f_edit_process_link() RETURNS trigger AS $$
+BEGIN
+    RAISE EXCEPTION 'Project links cannot be edited but can be removed and recreated again.';
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER
+                    SET search_path = processes, public, pg_temp;
+
+COMMENT ON FUNCTION processes.f_edit_process_link() IS 'This function prevents editing existing process links.';
+
+CREATE TRIGGER trig_edit_process_link
+    BEFORE UPDATE
+    ON processes.Process_link
+    FOR EACH ROW
+EXECUTE FUNCTION processes.f_edit_process_link();
+
+
+
+CREATE FUNCTION processes.f_add_step_link() RETURNS trigger AS $$
+BEGIN
+    IF ((SELECT processes.Process.process_status_type_code
+         FROM processes.Process
+                  INNER JOIN (processes.Step_link INNER JOIN processes.Step ON processes.Step_link.step_id = processes.Step.step_id)
+                             ON processes.Process.process_id = processes.Step.process_id FOR UPDATE) NOT IN (1, 3)) THEN
+        RAISE EXCEPTION 'New project links cannot be added to the steps of active and ended processes.';
+    ELSE
+        RETURN NEW;
+    END IF;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER
+                    SET search_path = processes, public, pg_temp;
+
+COMMENT ON FUNCTION processes.f_add_step_link() IS 'This function prevents adding new links to the steps of active and ended processes.';
+
+CREATE TRIGGER trig_add_step_link
+    BEFORE INSERT
+    ON processes.Step_link
+    FOR EACH ROW
+EXECUTE FUNCTION processes.f_add_step_link();
+
+
+
+CREATE FUNCTION processes.f_remove_step_link() RETURNS trigger AS $$
+BEGIN
+    IF ((SELECT processes.Process.process_status_type_code
+         FROM processes.Process
+                  INNER JOIN (processes.Step_link INNER JOIN processes.Step ON processes.Step_link.step_id = processes.Step.step_id)
+                             ON processes.Process.process_id = processes.Step.process_id FOR UPDATE) NOT IN (1, 3)) THEN
+        RAISE EXCEPTION 'Step links cannot be removed from active and ended processes.';
+    ELSE
+        RETURN OLD;
+    END IF;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER
+                    SET search_path = processes, public, pg_temp;
+
+COMMENT ON FUNCTION processes.f_remove_step_link() IS 'This function prevents removing existing links from the steps of active and ended processes.';
+
+CREATE TRIGGER trig_remove_step_link
+    BEFORE DELETE
+    ON processes.Process_link
+    FOR EACH ROW
+EXECUTE FUNCTION processes.f_remove_step_link();
+
+
+
+CREATE FUNCTION processes.f_edit_step_link() RETURNS trigger AS $$
+BEGIN
+    RAISE EXCEPTION 'Step links cannot be edited but can be removed and recreated again.';
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER
+                    SET search_path = processes, public, pg_temp;
+
+COMMENT ON FUNCTION processes.f_edit_step_link() IS 'This function prevents editing existing step links.';
+
+CREATE TRIGGER trig_edit_process_link
+    BEFORE UPDATE
+    ON processes.Process_link
+    FOR EACH ROW
+EXECUTE FUNCTION processes.f_edit_step_link();
