@@ -44,9 +44,9 @@ EXECUTE FUNCTION f_change_process_status();
 CREATE OR REPLACE FUNCTION f_activate_process_options_no_next_step() RETURNS trigger AS
 $$
 DECLARE
-    count bigint;
+    v_count bigint;
 BEGIN
-    count := (SELECT COUNT(*)
+    v_count := (SELECT COUNT(*)
               FROM (SELECT Option.next_step_id
                     FROM Option
                              INNER JOIN (Decision INNER JOIN (Step INNER JOIN Process
@@ -54,10 +54,10 @@ BEGIN
                         ON step_id = decision_id)
                                         ON Option.decision_id = Decision.decision_id
                     WHERE Option.next_step_id IS NULL) AS Option_with_no_next_step);
-    IF count > 0 THEN
+    IF v_count > 0 THEN
         RAISE EXCEPTION 'There are % options at the decision steps of this process
         that have no next step assigned to them. Every option must lead to the next
-        step.', count;
+        step.', v_count;
     END IF;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER
@@ -77,9 +77,9 @@ EXECUTE FUNCTION f_activate_process_options_no_next_step();
 CREATE OR REPLACE FUNCTION f_activate_process_decision_less_than_2_options() RETURNS trigger AS
 $$
 DECLARE
-    count bigint;
+    v_count bigint;
 BEGIN
-    count := (SELECT Count(*)
+    v_count := (SELECT Count(*)
               FROM (SELECT Decision.decision_id, Count(*)
                     FROM Option
                              INNER JOIN (Decision INNER JOIN (Step INNER JOIN Process
@@ -88,8 +88,8 @@ BEGIN
                                         ON Option.decision_id = Decision.decision_id
                     GROUP BY Decision.decision_id
                     HAVING Count(*) < 2) AS Decision_option_count);
-    IF count > 0 THEN
-        RAISE EXCEPTION 'There are % decision steps that have less than 2 options.', count;
+    IF v_count > 0 THEN
+        RAISE EXCEPTION 'There are % decision steps that have less than 2 options.', v_count;
     END IF;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER
