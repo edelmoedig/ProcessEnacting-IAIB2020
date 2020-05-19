@@ -121,10 +121,12 @@ COMMENT ON FUNCTION f_end_process(p_process_id Process.process_id%TYPE)
 
 CREATE OR REPLACE FUNCTION f_add_first_action(p_process_id Step.process_id%TYPE, p_description Step.description%TYPE)
     RETURNS VOID AS $$
+DECLARE
+    v_step_id Step.next_step_id%TYPE;
 BEGIN
-    INSERT INTO Step(process_id, description) VALUES (p_process_id, p_description) RETURNING step_id;
-    INSERT INTO Action(action_id) VALUES (step_id);
-    UPDATE Process SET first_step_id = step_id WHERE process_id = p_process_id;
+    INSERT INTO Step(process_id, description) VALUES (p_process_id, p_description) RETURNING step_id INTO v_step_id;
+    INSERT INTO Action(action_id) VALUES (v_step_id);
+    UPDATE Process SET first_step_id = v_step_id WHERE process_id = p_process_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER
                     SET search_path = public, pg_temp;
@@ -139,10 +141,12 @@ CREATE OR REPLACE FUNCTION f_add_action_to_step(p_process_id Step.process_id%TYP
                                                 p_previous_step_id Step.next_step_id%TYPE,
                                                 p_description Step.description%TYPE)
     RETURNS VOID AS $$
+DECLARE
+    v_step_id Step.next_step_id%TYPE;
 BEGIN
-    INSERT INTO Step(process_id, description) VALUES (p_process_id, p_description) RETURNING step_id;
-    INSERT INTO Action(action_id) VALUES (step_id);
-    UPDATE Step SET next_step_id = step_id WHERE Step.step_id = p_previous_step_id;
+    INSERT INTO Step(process_id, description) VALUES (p_process_id, p_description) RETURNING step_id INTO v_step_id;
+    INSERT INTO Action(action_id) VALUES (v_step_id);
+    UPDATE Step SET next_step_id = v_step_id WHERE Step.step_id = p_previous_step_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER
                     SET search_path = public, pg_temp;
@@ -159,12 +163,14 @@ CREATE OR REPLACE FUNCTION f_add_action_to_step_existing_next(p_process_id Step.
                                                               p_next_step_id Step.next_step_id%TYPE,
                                                               p_description Step.description%TYPE)
     RETURNS VOID AS $$
+DECLARE
+    v_step_id Step.next_step_id%TYPE;
 BEGIN
     INSERT INTO Step(process_id, next_step_id, description)
     VALUES (p_process_id, p_next_step_id, p_description)
-    RETURNING step_id;
-    INSERT INTO Action(action_id) VALUES (step_id);
-    UPDATE Step SET next_step_id = step_id WHERE Step.step_id = p_previous_step_id;
+    RETURNING step_id INTO v_step_id;
+    INSERT INTO Action(action_id) VALUES (v_step_id);
+    UPDATE Step SET next_step_id = v_step_id WHERE Step.step_id = p_previous_step_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER
                     SET search_path = public, pg_temp;
@@ -180,10 +186,12 @@ COMMENT ON FUNCTION f_add_action_to_step_existing_next(p_process_id Step.process
 CREATE OR REPLACE FUNCTION f_add_first_parallel_activity(p_process_id Step.process_id%TYPE,
                                                          p_description Step.description%TYPE)
     RETURNS VOID AS $$
+DECLARE
+    v_step_id Step.next_step_id%TYPE;
 BEGIN
-    INSERT INTO Step(process_id, description) VALUES (p_process_id, p_description) RETURNING step_id;
-    INSERT INTO Parallel_activity(parallel_activity_id) VALUES (step_id);
-    UPDATE Process SET first_step_id = step_id WHERE process_id = p_process_id;
+    INSERT INTO Step(process_id, description) VALUES (p_process_id, p_description) RETURNING step_id INTO v_step_id;
+    INSERT INTO Parallel_activity(parallel_activity_id) VALUES (v_step_id);
+    UPDATE Process SET first_step_id = v_step_id WHERE process_id = p_process_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER
                     SET search_path = public, pg_temp;
@@ -198,10 +206,12 @@ CREATE OR REPLACE FUNCTION f_add_parallel_activity_to_step(p_process_id Step.pro
                                                            p_previous_step_id Step.next_step_id%TYPE,
                                                            p_description Step.description%TYPE)
     RETURNS VOID AS $$
+DECLARE
+    v_step_id Step.next_step_id%TYPE;
 BEGIN
-    INSERT INTO Step(process_id, description) VALUES (p_process_id, p_description) RETURNING step_id;
-    INSERT INTO Parallel_activity(parallel_activity_id) VALUES (step_id);
-    UPDATE Step SET next_step_id = step_id WHERE Step.step_id = p_previous_step_id;
+    INSERT INTO Step(process_id, description) VALUES (p_process_id, p_description) RETURNING step_id INTO v_step_id;
+    INSERT INTO Parallel_activity(parallel_activity_id) VALUES (v_step_id);
+    UPDATE Step SET next_step_id = v_step_id WHERE Step.step_id = p_previous_step_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER
                     SET search_path = public, pg_temp;
@@ -218,12 +228,14 @@ CREATE OR REPLACE FUNCTION f_add_parallel_activity_to_step_existing_next(p_proce
                                                                          p_next_step_id Step.next_step_id%TYPE,
                                                                          p_description Step.description%TYPE)
     RETURNS VOID AS $$
+DECLARE
+    v_step_id Step.next_step_id%TYPE;
 BEGIN
     INSERT INTO Step(process_id, next_step_id, description)
     VALUES (p_process_id, p_next_step_id, p_description)
-    RETURNING step_id;
-    INSERT INTO Parallel_activity(parallel_activity_id) VALUES (step_id);
-    UPDATE Step SET next_step_id = step_id WHERE Step.step_id = p_previous_step_id;
+    RETURNING step_id INTO v_step_id;
+    INSERT INTO Parallel_activity(parallel_activity_id) VALUES (v_step_id);
+    UPDATE Step SET next_step_id = v_step_id WHERE Step.step_id = p_previous_step_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER
                     SET search_path = public, pg_temp;
@@ -240,11 +252,13 @@ CREATE OR REPLACE FUNCTION f_add_action_in_parallel_activity(p_process_id Step.p
                                                              p_parallel_activity_id Parallel_activity.parallel_activity_id%TYPE,
                                                              p_description Step.description%TYPE)
     RETURNS VOID AS $$
+DECLARE
+    v_step_id Step.next_step_id%TYPE;
 BEGIN
-    INSERT INTO Step(process_id, description) VALUES (p_process_id, p_description) RETURNING step_id;
-    INSERT INTO Action(action_id) VALUES (step_id);
+    INSERT INTO Step(process_id, description) VALUES (p_process_id, p_description) RETURNING step_id INTO v_step_id;
+    INSERT INTO Action(action_id) VALUES (v_step_id);
     INSERT INTO Action_in_parallel_activity(parallel_activity_id, action_id)
-    VALUES (p_parallel_activity_id, step_id);
+    VALUES (p_parallel_activity_id, v_step_id);
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER
                     SET search_path = public, pg_temp;
@@ -258,10 +272,12 @@ COMMENT ON FUNCTION f_add_action_in_parallel_activity(p_process_id Step.process_
 
 CREATE OR REPLACE FUNCTION f_add_first_decision(p_process_id Step.process_id%TYPE, p_description Step.description%TYPE)
     RETURNS VOID AS $$
+DECLARE
+    v_step_id Step.next_step_id%TYPE;
 BEGIN
-    INSERT INTO Step(process_id, description) VALUES (p_process_id, p_description) RETURNING step_id;
-    INSERT INTO Decision(decision_id) VALUES (step_id);
-    UPDATE Process SET first_step_id = step_id WHERE process_id = p_process_id;
+    INSERT INTO Step(process_id, description) VALUES (p_process_id, p_description) RETURNING step_id INTO v_step_id;
+    INSERT INTO Decision(decision_id) VALUES (v_step_id);
+    UPDATE Process SET first_step_id = v_step_id WHERE process_id = p_process_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER
                     SET search_path = public, pg_temp;
@@ -276,9 +292,11 @@ CREATE OR REPLACE FUNCTION f_add_decision_to_step(p_process_id Step.process_id%T
                                                   p_previous_step_id Step.next_step_id%TYPE,
                                                   p_description Step.description%TYPE)
     RETURNS VOID AS $$
+DECLARE
+    v_step_id Step.next_step_id%TYPE;
 BEGIN
-    INSERT INTO Step(process_id, description) VALUES (p_process_id, p_description) RETURNING step_id;
-    INSERT INTO Decision(decision_id) VALUES (step_id);
+    INSERT INTO Step(process_id, description) VALUES (p_process_id, p_description) RETURNING step_id INTO v_step_id;
+    INSERT INTO Decision(decision_id) VALUES (v_step_id);
     UPDATE Step SET next_step_id = step_id WHERE Step.step_id = p_previous_step_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER
@@ -296,12 +314,14 @@ CREATE OR REPLACE FUNCTION f_add_decision_to_step_existing_next(p_process_id Ste
                                                                 p_next_step_id Step.next_step_id%TYPE,
                                                                 p_description Step.description%TYPE)
     RETURNS VOID AS $$
+DECLARE
+    v_step_id Step.next_step_id%TYPE;
 BEGIN
     INSERT INTO Step(process_id, next_step_id, description)
     VALUES (p_process_id, p_next_step_id, p_description)
-    RETURNING step_id;
-    INSERT INTO Decision(decision_id) VALUES (step_id);
-    UPDATE Step SET next_step_id = step_id WHERE Step.step_id = p_previous_step_id;
+    RETURNING step_id INTO v_step_id;
+    INSERT INTO Decision(decision_id) VALUES (v_step_id);
+    UPDATE Step SET next_step_id = v_step_id WHERE Step.step_id = p_previous_step_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER
                     SET search_path = public, pg_temp;
