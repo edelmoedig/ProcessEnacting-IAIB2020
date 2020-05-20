@@ -169,7 +169,7 @@ CREATE OR REPLACE FUNCTION processes.f_add_next_step_to_decision() RETURNS trigg
 $$
 BEGIN
     IF EXISTS(SELECT 1 FROM processes.Decision WHERE decision_id = NEW.step_id FOR UPDATE) THEN
-        RAISE EXCEPTION 'processes.Decision step cannot have an associated next step. The decision''s options must be linked to the next step.';
+        RAISE EXCEPTION 'Decision step cannot have an associated next step. The decision''s options must be linked to the next step.';
     ELSE
         RETURN NEW;
     END IF;
@@ -185,6 +185,77 @@ CREATE TRIGGER trig_add_next_step_to_decision
     ON processes.Step
     FOR EACH ROW
 EXECUTE FUNCTION processes.f_add_next_step_to_decision();
+
+
+
+CREATE OR REPLACE FUNCTION processes.f_add_option_leading_to_action_in_parallel_activity() RETURNS trigger AS $$
+BEGIN
+    IF EXISTS(SELECT 1
+              FROM processes.action_in_parallel_activity
+              WHERE processes.action_in_parallel_activity.action_id = NEW.next_step_id FOR UPDATE) THEN
+        RAISE EXCEPTION 'Options cannot lead to action steps in parallel activity, they must lead to the parallel activity.';
+    ELSE
+        RETURN NEW;
+    END IF;
+END ;
+$$ LANGUAGE plpgsql SECURITY DEFINER
+                    SET search_path = processes, public, pg_temp;
+
+COMMENT ON FUNCTION processes.f_add_option_leading_to_action_in_parallel_activity() IS 'This function prevents adding options whose next step is set to an action in a parallel activity. Steps must be added to the parallel activity.';
+
+CREATE TRIGGER trig_add_option_leading_to_action_in_parallel_activity
+    BEFORE INSERT
+    ON processes.Option
+    FOR EACH ROW
+    WHEN (NEW.next_step_id IS NOT NULL)
+EXECUTE FUNCTION processes.f_add_option_leading_to_action_in_parallel_activity();
+
+
+
+CREATE OR REPLACE FUNCTION processes.f_add_step_leading_to_action_in_parallel_activity() RETURNS trigger AS $$
+BEGIN
+    IF EXISTS(SELECT 1
+              FROM processes.action_in_parallel_activity
+              WHERE processes.action_in_parallel_activity.action_id = NEW.step_id FOR UPDATE) THEN
+        RAISE EXCEPTION 'Steps cannot lead to action steps in parallel activity, they must lead to the parallel activity.';
+    ELSE
+        RETURN NEW;
+    END IF;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER
+                    SET search_path = processes, public, pg_temp;
+
+COMMENT ON FUNCTION processes.f_add_step_leading_to_action_in_parallel_activity() IS 'This function prevents adding steps whose next step is set to an action in a parallel activity. Steps must be added to the parallel activity.';
+
+CREATE TRIGGER trig_add_step_leading_to_action_in_parallel_activity
+    BEFORE INSERT
+    ON processes.Step
+    FOR EACH ROW
+    WHEN (NEW.step_id IS NOT NULL)
+EXECUTE FUNCTION processes.f_add_step_leading_to_action_in_parallel_activity();
+
+
+
+CREATE OR REPLACE FUNCTION processes.f_add_next_step_to_action_in_parallel_activity() RETURNS trigger AS $$
+BEGIN
+    IF EXISTS(SELECT 1
+              FROM processes.action_in_parallel_activity
+              WHERE processes.action_in_parallel_activity.action_id = NEW.next_step_id FOR UPDATE) THEN
+        RAISE EXCEPTION 'Steps cannot lead to action steps in parallel activity, they must lead to the parallel activity.';
+    ELSE
+        RETURN NEW;
+    END IF;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER
+                    SET search_path = processes, public, pg_temp;
+
+COMMENT ON FUNCTION processes.f_add_next_step_to_action_in_parallel_activity() IS 'This function prevents adding next steps to actions a parallel activity. The next step must be .';
+
+CREATE TRIGGER trig_add_next_step_to_action_in_parallel_activity
+    BEFORE UPDATE OF next_step_id
+    ON processes.Step
+    FOR EACH ROW
+EXECUTE FUNCTION processes.f_add_next_step_to_action_in_parallel_activity();
 
 
 
@@ -316,7 +387,7 @@ BEGIN
          FROM processes.Process
                   INNER JOIN (processes.Option INNER JOIN (processes.Decision INNER JOIN processes.Step ON processes.Decision.decision_id = processes.Step.step_id) ON OLD.decision_id = processes.Decision.decision_id)
                              ON processes.Process.process_id = processes.Step.process_id FOR UPDATE) NOT IN (1, 3)) THEN
-        RAISE EXCEPTION 'processes.Decision''s options can only be edited if its associated process''s status is "On hold" or "Inactive".';
+        RAISE EXCEPTION 'Decision''s options can only be edited if its associated process''s status is "On hold" or "Inactive".';
     ELSE
         RETURN NEW;
     END IF;
@@ -340,7 +411,7 @@ BEGIN
          FROM processes.Process
                   INNER JOIN (processes.Option INNER JOIN (processes.Decision INNER JOIN processes.Step ON processes.Decision.decision_id = processes.Step.step_id) ON OLD.decision_id = processes.Decision.decision_id)
                              ON processes.Process.process_id = processes.Step.process_id FOR UPDATE) <> 1) THEN
-        RAISE EXCEPTION 'processes.Decision''s options can only be removed if its associated process''s status is "On hold".';
+        RAISE EXCEPTION 'Decision''s options can only be removed if its associated process''s status is "On hold".';
     ELSE
         RETURN OLD;
     END IF;
@@ -360,7 +431,7 @@ EXECUTE FUNCTION processes.f_remove_decision_option();
 
 CREATE FUNCTION processes.f_remove_decision_option_with_next_step() RETURNS trigger AS $$
 BEGIN
-    RAISE EXCEPTION 'processes.Decision''s options can only be removed if they have no associated next steps.';
+    RAISE EXCEPTION 'Decision''s options can only be removed if they have no associated next steps.';
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER
                     SET search_path = processes, public, pg_temp;
