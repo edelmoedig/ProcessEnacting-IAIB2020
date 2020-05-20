@@ -17,6 +17,7 @@ COMMENT ON FUNCTION processes.f_register_administrator(p_email processes.Adminis
     IS 'This function is used to register a new process administrator.';
 
 
+
 -- Processes
 
 CREATE OR REPLACE FUNCTION processes.f_register_process(p_name processes.Process.name%TYPE,
@@ -119,6 +120,7 @@ COMMENT ON FUNCTION processes.f_end_process(p_process_id processes.Process.proce
     IS 'This function is to forget a process by deleting in from the database. The process can only be ended if it''s current status is "On hold". This function returns TRUE if the deletion was successful.';
 
 
+
 -- Steps
 
 CREATE OR REPLACE FUNCTION processes.f_add_first_action(p_process_id processes.Step.process_id%TYPE,
@@ -157,7 +159,7 @@ $$ LANGUAGE sql SECURITY DEFINER
 COMMENT ON FUNCTION processes.f_add_action_to_step(p_process_id processes.Step.process_id%TYPE,
     p_previous_step_id processes.Step.next_step_id%TYPE,
     p_description processes.Step.description%TYPE)
-    IS 'This function is used to add an action step connected to an existing previous step that does not lead to an existing step.';
+    IS 'This function is used to add an action step that is connected to an existing previous step and does not lead to an existing step.';
 
 
 
@@ -181,6 +183,50 @@ COMMENT ON FUNCTION processes.f_add_action_to_step_existing_next(p_process_id pr
     p_next_step_id processes.Step.next_step_id%TYPE,
     p_description processes.Step.description%TYPE)
     IS 'This function is used to add an action step connected to an existing previous step that leads to an existing step.';
+
+
+
+CREATE OR REPLACE FUNCTION processes.f_add_action_to_option(p_process_id processes.Step.process_id%TYPE,
+                                                            p_option_id processes.Option.option_id%TYPE,
+                                                            p_description processes.Step.description%TYPE)
+    RETURNS VOID AS $$
+WITH add_step AS (INSERT INTO processes.Step (process_id, description)
+    VALUES (p_process_id, p_description) RETURNING step_id),
+     add_action AS (INSERT INTO processes.Action (action_id) SELECT step_id FROM add_step),
+     add_next_step
+         AS (UPDATE processes.Option SET next_step_id = (SELECT step_id FROM add_step) WHERE option_id = p_option_id)
+SELECT step_id
+FROM add_step;
+$$ LANGUAGE sql SECURITY DEFINER
+                SET search_path = processes, public, pg_temp;
+
+COMMENT ON FUNCTION processes.f_add_action_to_option(p_process_id processes.Step.process_id%TYPE,
+    p_option_id processes.Option.option_id%TYPE,
+    p_description processes.Step.description%TYPE)
+    IS 'This function is used to add an action step connected to an existing previous step that leads to an existing step.';
+
+
+
+CREATE OR REPLACE FUNCTION processes.f_add_action_to_option_existing_next(p_process_id processes.Step.process_id%TYPE,
+                                                                          p_option_id processes.Option.option_id%TYPE,
+                                                                          p_next_step_id processes.Step.next_step_id%TYPE,
+                                                                          p_description processes.Step.description%TYPE)
+    RETURNS VOID AS $$
+WITH add_step AS (INSERT INTO processes.Step (process_id, next_step_id, description)
+    VALUES (p_process_id, p_next_step_id, p_description) RETURNING step_id),
+     add_action AS (INSERT INTO processes.Action (action_id) SELECT step_id FROM add_step),
+     add_next_step
+         AS (UPDATE processes.Option SET next_step_id = (SELECT step_id FROM add_step) WHERE option_id = p_option_id)
+SELECT step_id
+FROM add_step;
+$$ LANGUAGE sql SECURITY DEFINER
+                SET search_path = processes, public, pg_temp;
+
+COMMENT ON FUNCTION processes.f_add_action_to_step_existing_next(p_process_id processes.Step.process_id%TYPE,
+    p_option_id processes.Option.option_id%TYPE,
+    p_next_step_id processes.Step.next_step_id%TYPE,
+    p_description processes.Step.description%TYPE)
+    IS 'This function is used to add an action step that is connected to an existing option and leads to an existing step.';
 
 
 
@@ -222,7 +268,7 @@ $$ LANGUAGE sql SECURITY DEFINER
 COMMENT ON FUNCTION processes.f_add_parallel_activity_to_step(p_process_id processes.Step.process_id%TYPE,
     p_previous_step_id processes.Step.next_step_id%TYPE,
     p_description processes.Step.description%TYPE)
-    IS 'This function is used to add a parallel activity connected to an existing previous step that does not lead to an existing step.';
+    IS 'This function is used to add a parallel activity that is connected to an existing previous step and does not lead to an existing step.';
 
 
 
@@ -246,7 +292,53 @@ COMMENT ON FUNCTION processes.f_add_parallel_activity_to_step_existing_next(p_pr
     p_previous_step_id processes.Step.next_step_id%TYPE,
     p_next_step_id processes.Step.next_step_id%TYPE,
     p_description processes.Step.description%TYPE)
-    IS 'This function is used to add a parallel activity connected to an existing previous step that leads to an existing step.';
+    IS 'This function is used to add a parallel activity that is connected to an existing previous step and leads to an existing step.';
+
+
+
+CREATE OR REPLACE FUNCTION processes.f_add_parallel_activity_to_option(p_process_id processes.Step.process_id%TYPE,
+                                                                       p_option_id processes.Option.option_id%TYPE,
+                                                                       p_description processes.Step.description%TYPE)
+    RETURNS VOID AS $$
+WITH add_step AS (INSERT INTO processes.Step (process_id, description)
+    VALUES (p_process_id, p_description) RETURNING step_id),
+     add_parallel_activity
+         AS (INSERT INTO processes.Parallel_activity (parallel_activity_id) SELECT step_id FROM add_step),
+     add_next_step
+         AS (UPDATE processes.Option SET next_step_id = (SELECT step_id FROM add_step) WHERE option_id = p_option_id)
+SELECT step_id
+FROM add_step;
+$$ LANGUAGE sql SECURITY DEFINER
+                SET search_path = processes, public, pg_temp;
+
+COMMENT ON FUNCTION processes.f_add_parallel_activity_to_option(p_process_id processes.Step.process_id%TYPE,
+    p_option_id processes.Option.option_id%TYPE,
+    p_description processes.Step.description%TYPE)
+    IS 'This function is used to add a parallel activity that is connected to an existing previous option and does not lead to an existing step.';
+
+
+
+CREATE OR REPLACE FUNCTION processes.f_add_parallel_activity_to_option_existing_next(p_process_id processes.Step.process_id%TYPE,
+                                                                                     p_option_id processes.Option.option_id%TYPE,
+                                                                                     p_next_step_id processes.Step.next_step_id%TYPE,
+                                                                                     p_description processes.Step.description%TYPE)
+    RETURNS VOID AS $$
+WITH add_step AS (INSERT INTO processes.Step (process_id, next_step_id, description)
+    VALUES (p_process_id, p_next_step_id, p_description) RETURNING step_id),
+     add_parallel_activity
+         AS (INSERT INTO processes.Parallel_activity (parallel_activity_id) SELECT step_id FROM add_step),
+     add_next_step
+         AS (UPDATE processes.Option SET next_step_id = (SELECT step_id FROM add_step) WHERE option_id = p_option_id)
+SELECT step_id
+FROM add_step;
+$$ LANGUAGE sql SECURITY DEFINER
+                SET search_path = processes, public, pg_temp;
+
+COMMENT ON FUNCTION processes.f_add_parallel_activity_to_option_existing_next(p_process_id processes.Step.process_id%TYPE,
+    p_option_id processes.Option.option_id%TYPE,
+    p_next_step_id processes.Step.next_step_id%TYPE,
+    p_description processes.Step.description%TYPE)
+    IS 'This function is used to add a parallel activity that is connected to an existing previous option and leads to an existing step.';
 
 
 
@@ -307,7 +399,7 @@ $$ LANGUAGE sql SECURITY DEFINER
 COMMENT ON FUNCTION processes.f_add_decision_to_step(p_process_id processes.Step.process_id%TYPE,
     p_previous_step_id processes.Step.next_step_id%TYPE,
     p_description processes.Step.description%TYPE)
-    IS 'This function is used to add a decision step connected to an existing previous step that does not lead to an existing step.';
+    IS 'This function is used to add a decision step that is connected to an existing previous step and does not lead to an existing step.';
 
 
 
@@ -326,10 +418,54 @@ FROM add_step;
 $$ LANGUAGE sql SECURITY DEFINER
                 SET search_path = processes, public, pg_temp;
 
-COMMENT ON FUNCTION processes.f_add_decision_to_step(p_process_id processes.Step.process_id%TYPE,
+COMMENT ON FUNCTION processes.f_add_decision_to_step_existing_next(p_process_id processes.Step.process_id%TYPE,
     p_previous_step_id processes.Step.next_step_id%TYPE,
     p_description processes.Step.description%TYPE)
-    IS 'This function is used to add a decision step connected to an existing previous step that leads to an existing step.';
+    IS 'This function is used to add a decision step that is connected to an existing previous step and leads to an existing step.';
+
+
+
+CREATE OR REPLACE FUNCTION processes.f_add_decision_to_option(p_process_id processes.Step.process_id%TYPE,
+                                                              p_option_id processes.Option.option_id%TYPE,
+                                                              p_description processes.Step.description%TYPE)
+    RETURNS VOID AS $$
+WITH add_step AS (INSERT INTO processes.Step (process_id, description)
+    VALUES (p_process_id, p_description) RETURNING step_id),
+     add_decision AS (INSERT INTO processes.Decision (decision_id) SELECT step_id FROM add_step),
+     add_next_step
+         AS (UPDATE processes.Option SET next_step_id = (SELECT step_id FROM add_step) WHERE option_id = p_option_id)
+SELECT step_id
+FROM add_step;
+$$ LANGUAGE sql SECURITY DEFINER
+                SET search_path = processes, public, pg_temp;
+
+COMMENT ON FUNCTION processes.f_add_decision_to_option(p_process_id processes.Step.process_id%TYPE,
+    p_option_id processes.Option.option_id%TYPE,
+    p_description processes.Step.description%TYPE)
+    IS 'This function is used to add a decision step that is connected to an existing options and does not lead to an existing step.';
+
+
+
+CREATE OR REPLACE FUNCTION processes.f_add_decision_to_step_existing_next(p_process_id processes.Step.process_id%TYPE,
+                                                                          p_option_id processes.Option.option_id%TYPE,
+                                                                          p_next_step_id processes.Step.next_step_id%TYPE,
+                                                                          p_description processes.Step.description%TYPE)
+    RETURNS VOID AS $$
+WITH add_step AS (INSERT INTO processes.Step (process_id, next_step_id, description)
+    VALUES (p_process_id, p_next_step_id, p_description) RETURNING step_id),
+     add_decision AS (INSERT INTO processes.Decision (decision_id) SELECT step_id FROM add_step),
+     add_next_step
+         AS (UPDATE processes.Option SET next_step_id = (SELECT step_id FROM add_step) WHERE option_id = p_option_id)
+SELECT step_id
+FROM add_step;
+$$ LANGUAGE sql SECURITY DEFINER
+                SET search_path = processes, public, pg_temp;
+
+COMMENT ON FUNCTION processes.f_add_decision_to_step_existing_next(p_process_id processes.Step.process_id%TYPE,
+    p_option_id processes.Option.option_id%TYPE,
+    p_previous_step_id processes.Step.next_step_id%TYPE,
+    p_description processes.Step.description%TYPE)
+    IS 'This function is used to add a decision step that is connected to an existing previous step and leads to an existing step.';
 
 
 
@@ -346,6 +482,23 @@ COMMENT ON FUNCTION processes.f_add_option_to_decision(p_decision_id processes.O
     p_weight processes.Option.weight%TYPE,
     p_guard processes.Option.guard%TYPE)
     IS 'This function is used to add an option to an existing decision step.';
+
+
+
+CREATE OR REPLACE FUNCTION processes.f_add_option_to_decision_existing_next(p_decision_id processes.Option.decision_id%TYPE,
+                                                                            p_next_step_id processes.Step.next_step_id%TYPE,
+                                                                            p_weight processes.Option.weight%TYPE,
+                                                                            p_guard processes.Option.guard%TYPE)
+    RETURNS VOID AS $$
+INSERT INTO processes.Option(decision_id, next_step_id, weight, guard)
+SELECT p_decision_id, p_next_step_id, p_weight, p_guard FOR UPDATE;
+$$ LANGUAGE sql SECURITY DEFINER
+                SET search_path = processes, public, pg_temp;
+
+COMMENT ON FUNCTION processes.f_add_option_to_decision(p_decision_id processes.Option.decision_id%TYPE,
+    p_weight processes.Option.weight%TYPE,
+    p_guard processes.Option.guard%TYPE)
+    IS 'This function is used to add an option leading to an existing next step.';
 
 
 
@@ -405,6 +558,7 @@ $$ LANGUAGE sql SECURITY DEFINER
 
 COMMENT ON FUNCTION processes.f_change_step_description(p_step_id processes.Step.step_id%TYPE, p_description processes.Step.description%TYPE)
     IS 'This function is used to change a step''s description.';
+
 
 
 -- Links
@@ -468,6 +622,8 @@ $$ LANGUAGE sql SECURITY DEFINER
 
 COMMENT ON FUNCTION processes.f_remove_process_link(p_process_link_id processes.Process_link.process_link_id%TYPE)
     IS 'This function is used to remove an associated link from an existing step.';
+
+
 
 -- Decision tables
 
@@ -560,6 +716,7 @@ COMMENT ON FUNCTION processes.f_change_decision_table_entry(p_decision_table_ent
     p_action processes.Decision_table_entry.action%TYPE,
     p_seq_nr processes.Decision_table_entry.seq_nr%TYPE)
     IS 'This function is used to change an existing decision table entry''s condition text, action text, and sequence number';
+
 
 
 -- Log
