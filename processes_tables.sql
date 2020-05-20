@@ -18,7 +18,7 @@ DROP TABLE IF EXISTS processes.Option CASCADE;
 
 /* Create Domains */
 
-CREATE DOMAIN d_time AS
+CREATE DOMAIN processes.d_time AS
     timestamp NOT NULL DEFAULT LOCALTIMESTAMP(0) CONSTRAINT CHK_d_time_from_2020_to_2200 CHECK (VALUE >= '2020-01-01' AND VALUE < '2201-01-01');
 
 
@@ -32,7 +32,7 @@ CREATE TABLE processes.Administrator
     given_name       varchar(800) NULL,
     surname          varchar(800) NULL,
     is_active        boolean      NOT NULL DEFAULT TRUE,
-    reg_time         d_time,
+    reg_time         processes.d_time,
     CONSTRAINT PK_Administrator PRIMARY KEY (administrator_id),
     CONSTRAINT CHK_Administrator_must_have_a_name CHECK (given_name IS NOT NULL OR surname IS NOT NULL),
     CONSTRAINT CHK_Administrator_password_not_only_whitespace CHECK (password !~ '^[[:space:]]*$'),
@@ -58,7 +58,7 @@ CREATE TABLE processes.Process
     description              text         NOT NULL,
     owner_id                 integer      NOT NULL,
     first_step_id            integer      NULL,
-    reg_time                 d_time,
+    reg_time                 processes.d_time,
     process_status_type_code smallint     NOT NULL DEFAULT 1,
     password                 varchar(60)  NULL,
     CONSTRAINT PK_Process PRIMARY KEY (process_id),
@@ -76,7 +76,7 @@ CREATE TABLE processes.Step
 (
     step_id      serial  NOT NULL,
     process_id   integer NOT NULL,
-    reg_time     d_time,
+    reg_time     processes.d_time,
     description  text    NOT NULL,
     next_step_id integer NULL,
     CONSTRAINT PK_Step PRIMARY KEY (step_id),
@@ -110,7 +110,7 @@ CREATE TABLE processes.Action_in_parallel_activity
 (
     action_id            integer NOT NULL,
     parallel_activity_id integer NOT NULL,
-    reg_time             d_time,
+    reg_time             processes.d_time,
     CONSTRAINT PK_Action_in_parallel_activity PRIMARY KEY (action_id),
     CONSTRAINT FK_Action_in_parallel_activity_Parallel_activity FOREIGN KEY (parallel_activity_id) REFERENCES processes.Parallel_activity (parallel_activity_id) ON DELETE CASCADE ON UPDATE NO ACTION,
     CONSTRAINT FK_Action_in_parallel_activity_Action FOREIGN KEY (action_id) REFERENCES processes.Action (action_id) ON DELETE CASCADE ON UPDATE NO ACTION
@@ -130,7 +130,7 @@ CREATE TABLE processes.Option
     decision_id  integer        NOT NULL,
     next_step_id integer        NULL,
     weight       decimal(10, 3) NULL,
-    reg_time     d_time,
+    reg_time     processes.d_time,
     guard        text           NOT NULL,
     CONSTRAINT PK_Option PRIMARY KEY (option_id),
     CONSTRAINT CHK_Option_guard_not_only_whitespace CHECK (guard !~ '^[[:space:]]*$'),
@@ -149,7 +149,7 @@ CREATE TABLE processes.Process_link
     url             varchar(2000) NOT NULL,
     name            varchar(1000) NULL,
     priority_nr     smallint      NOT NULL,
-    reg_time        d_time,
+    reg_time        processes.d_time,
     CONSTRAINT PK_Process_link PRIMARY KEY (process_link_id),
     CONSTRAINT AK_Process_link_priority UNIQUE (process_id, priority_nr),
     CONSTRAINT AK_Process_link_url UNIQUE (url, process_id),
@@ -165,7 +165,7 @@ CREATE TABLE processes.Step_link
     url          varchar(2000) NOT NULL,
     name         varchar(1000) NULL,
     priority_nr  smallint      NOT NULL,
-    reg_time     d_time,
+    reg_time     processes.d_time,
     CONSTRAINT PK_Step_link PRIMARY KEY (step_link_id),
     CONSTRAINT AK_Step_link_priority UNIQUE (step_id, priority_nr),
     CONSTRAINT AK_Step_link_url UNIQUE (url, step_id),
@@ -180,7 +180,7 @@ CREATE TABLE processes.Decision_table
     action_id         integer      NOT NULL,
     name              varchar(500) NOT NULL,
     is_active         boolean      NOT NULL DEFAULT TRUE,
-    reg_time          d_time,
+    reg_time          processes.d_time,
     CONSTRAINT PK_Decision_table PRIMARY KEY (decision_table_id),
     CONSTRAINT CHK_Decision_table_name_not_only_whitespace CHECK (name !~ '^[[:space:]]*$'),
     CONSTRAINT FK_Decision_table_Action FOREIGN KEY (action_id) REFERENCES processes.Action (action_id) ON DELETE CASCADE ON UPDATE NO ACTION
@@ -194,7 +194,7 @@ CREATE TABLE processes.Decision_table_entry
     condition               text     NOT NULL,
     action                  text     NOT NULL,
     seq_nr                  smallint NOT NULL,
-    reg_time                d_time,
+    reg_time                processes.d_time,
     CONSTRAINT PK_Decision_table_entry PRIMARY KEY (decision_table_entry_id),
     CONSTRAINT AK_decision_table_entry_seq_nr UNIQUE (decision_table_id, seq_nr),
     CONSTRAINT AK_decision_table_entry_condition UNIQUE (condition, decision_table_id),
@@ -219,7 +219,7 @@ CREATE TABLE processes.Step_click
     step_click_id    bigserial NOT NULL,
     process_usage_id bigint    NOT NULL,
     step_id          integer   NOT NULL,
-    click_time       d_time,
+    click_time       processes.d_time,
     CONSTRAINT PK_Step_click PRIMARY KEY (step_click_id),
     CONSTRAINT FK_Step_click_Step FOREIGN KEY (step_id) REFERENCES processes.Step (step_id) ON DELETE CASCADE ON UPDATE NO ACTION,
     CONSTRAINT FK_Step_click_Process_usage FOREIGN KEY (process_usage_id) REFERENCES processes.Process_usage (process_usage_id) ON DELETE CASCADE ON UPDATE NO ACTION
