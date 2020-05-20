@@ -37,6 +37,8 @@ $$ LANGUAGE plpgsql SECURITY DEFINER
 COMMENT ON FUNCTION processes.f_is_administrator(p_email processes.Administrator.email%TYPE, p_password processes.Administrator.password%TYPE)
     IS 'This function is used to authenticate a process administrator. p_email is an administrator''s case-insensitive email, p_password is a plain-text password. This function returns TRUE if the administrator with this combination is registered and is active.';
 
+
+
 -- Processes
 
 CREATE OR REPLACE FUNCTION processes.f_register_process(p_name processes.Process.name%TYPE,
@@ -45,7 +47,7 @@ CREATE OR REPLACE FUNCTION processes.f_register_process(p_name processes.Process
                                                         p_password processes.Process.password%TYPE)
     RETURNS VOID AS $$
 INSERT INTO processes.Process(name, description, owner_id, password)
-SELECT p_name, p_description, p_owner, p_password FOR UPDATE;
+SELECT p_name, p_description, p_owner, processes.crypt(p_password, processes.gen_salt('bf', 11)) FOR UPDATE;
 $$ LANGUAGE sql SECURITY DEFINER
                 SET search_path = processes, public, pg_temp;
 
@@ -61,17 +63,17 @@ CREATE OR REPLACE FUNCTION processes.f_change_process_password(p_process_id proc
                                                                p_password processes.Process.password%TYPE)
     RETURNS VOID AS $$
 UPDATE processes.Process
-SET password = NULLIF(p_password, '')
+SET password = processes.crypt(p_password, processes.gen_salt('bf', 11))
 WHERE process_id = p_process_id
 $$ LANGUAGE sql SECURITY DEFINER
                 SET search_path = processes, public, pg_temp;
 
 COMMENT ON FUNCTION processes.f_change_process_password(p_process_id processes.Process.process_id%TYPE, p_password processes.Process.password%TYPE)
-    IS 'This function is used to change a process''s password. If the provided password is empty, the process'' password is set to NULL instead.';
+    IS 'This function is used to change a process''s password.';
 
 
 
-CREATE OR REPLACE FUNCTION processes.f_change_password_name_and_description(p_process_id processes.Process.process_id%TYPE,
+CREATE OR REPLACE FUNCTION processes.f_change_name_and_description(p_process_id processes.Process.process_id%TYPE,
                                                                             p_name processes.Process.name%TYPE,
                                                                             p_description processes.Process.description%TYPE)
     RETURNS VOID AS $$
@@ -82,7 +84,7 @@ WHERE process_id = p_process_id;
 $$ LANGUAGE sql SECURITY DEFINER
                 SET search_path = processes, public, pg_temp;
 
-COMMENT ON FUNCTION processes.f_change_password_name_and_description(p_process_id processes.Process.process_id%TYPE,
+COMMENT ON FUNCTION processes.f_change_name_and_description(p_process_id processes.Process.process_id%TYPE,
     p_name processes.Process.name%TYPE,
     p_description processes.Process.description%TYPE)
     IS 'This function is used to change an existing process''s name and description.';
