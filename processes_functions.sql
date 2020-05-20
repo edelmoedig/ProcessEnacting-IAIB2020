@@ -6,7 +6,7 @@ CREATE OR REPLACE FUNCTION processes.f_register_administrator(p_email processes.
                                                               p_surname processes.Administrator.surname%TYPE)
     RETURNS VOID AS $$
 INSERT INTO processes.Administrator(email, password, given_name, surname)
-SELECT p_email, p_password, p_given_name, p_surname FOR UPDATE;
+SELECT p_email, processes.crypt(p_password, processes.gen_salt('bf', 11)), p_given_name, p_surname FOR UPDATE;
 $$ LANGUAGE sql SECURITY DEFINER
                 SET search_path = processes, public, pg_temp;
 
@@ -24,8 +24,8 @@ CREATE OR REPLACE FUNCTION processes.f_is_administrator(p_email processes.Admini
 DECLARE
     v_result boolean;
 BEGIN
-    SELECT INTO v_result (password = public.crypt(p_password, password))
-    FROM administrator
+    SELECT INTO v_result (password = processes.crypt(p_password, password))
+    FROM processes.Administrator
     WHERE lower(p_email) = lower(email)
       AND is_active IS TRUE;
     RETURN coalesce(v_result, FALSE);
