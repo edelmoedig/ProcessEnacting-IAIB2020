@@ -18,6 +18,25 @@ COMMENT ON FUNCTION processes.f_register_administrator(p_email processes.Adminis
 
 
 
+CREATE OR REPLACE FUNCTION processes.f_is_administrator(p_email processes.Administrator.email%TYPE,
+                                                        p_password processes.Administrator.password%TYPE)
+    RETURNS boolean AS $$
+DECLARE
+    v_result boolean;
+BEGIN
+    SELECT INTO v_result (password = public.crypt(p_password, password))
+    FROM administrator
+    WHERE lower(p_email) = lower(email)
+      AND is_active IS TRUE;
+    RETURN coalesce(v_result, FALSE);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER
+                    STABLE
+                    SET search_path = public, pg_temp;
+
+COMMENT ON FUNCTION processes.f_is_administrator(p_email processes.Administrator.email%TYPE, p_password processes.Administrator.password%TYPE)
+    IS 'This function is used to authenticate a process administrator. p_email is an administrator''s case-insensitive email, p_password is a plain-text password. This function returns TRUE if the administrator with this combination is registered and is active.';
+
 -- Processes
 
 CREATE OR REPLACE FUNCTION processes.f_register_process(p_name processes.Process.name%TYPE,
@@ -118,7 +137,6 @@ $$ LANGUAGE sql SECURITY DEFINER
 
 COMMENT ON FUNCTION processes.f_end_process(p_process_id processes.Process.process_id%TYPE)
     IS 'This function is to forget a process by deleting in from the database. The process can only be ended if it''s current status is "On hold". This function returns TRUE if the deletion was successful.';
-
 
 
 -- Steps
@@ -448,9 +466,9 @@ COMMENT ON FUNCTION processes.f_add_decision_to_option(p_process_id processes.St
 
 
 CREATE OR REPLACE FUNCTION processes.f_add_decision_to_option_existing_next(p_process_id processes.Step.process_id%TYPE,
-                                                                          p_option_id processes.Option.option_id%TYPE,
-                                                                          p_next_step_id processes.Step.next_step_id%TYPE,
-                                                                          p_description processes.Step.description%TYPE)
+                                                                            p_option_id processes.Option.option_id%TYPE,
+                                                                            p_next_step_id processes.Step.next_step_id%TYPE,
+                                                                            p_description processes.Step.description%TYPE)
     RETURNS VOID AS $$
 WITH add_step AS (INSERT INTO processes.Step (process_id, next_step_id, description)
     VALUES (p_process_id, p_next_step_id, p_description) RETURNING step_id),
@@ -561,7 +579,6 @@ COMMENT ON FUNCTION processes.f_change_step_description(p_step_id processes.Step
     IS 'This function is used to change a step''s description.';
 
 
-
 -- Links
 
 CREATE OR REPLACE FUNCTION processes.f_add_process_link(p_process_id processes.Process_link.process_id%TYPE,
@@ -623,7 +640,6 @@ $$ LANGUAGE sql SECURITY DEFINER
 
 COMMENT ON FUNCTION processes.f_remove_process_link(p_process_link_id processes.Process_link.process_link_id%TYPE)
     IS 'This function is used to remove an associated link from an existing step.';
-
 
 
 -- Decision tables
@@ -717,7 +733,6 @@ COMMENT ON FUNCTION processes.f_change_decision_table_entry(p_decision_table_ent
     p_action processes.Decision_table_entry.action%TYPE,
     p_seq_nr processes.Decision_table_entry.seq_nr%TYPE)
     IS 'This function is used to change an existing decision table entry''s condition text, action text, and sequence number';
-
 
 
 -- Log
