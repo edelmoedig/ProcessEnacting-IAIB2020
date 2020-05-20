@@ -137,7 +137,7 @@ FROM forget_process;
 $$ LANGUAGE sql SECURITY DEFINER
                 SET search_path = processes, public, pg_temp;
 
-COMMENT ON FUNCTION processes.f_end_process(p_process_id processes.Process.process_id%TYPE)
+COMMENT ON FUNCTION processes.f_forget_process(p_process_id processes.Process.process_id%TYPE)
     IS 'This function is to forget a process by deleting in from the database. The process can only be ended if it''s current status is "On hold". This function returns TRUE if the deletion was successful.';
 
 
@@ -242,7 +242,7 @@ FROM add_step;
 $$ LANGUAGE sql SECURITY DEFINER
                 SET search_path = processes, public, pg_temp;
 
-COMMENT ON FUNCTION processes.f_add_action_to_step_existing_next(p_process_id processes.Step.process_id%TYPE,
+COMMENT ON FUNCTION processes.f_add_action_to_option_existing_next(p_process_id processes.Step.process_id%TYPE,
     p_option_id processes.Option.option_id%TYPE,
     p_next_step_id processes.Step.next_step_id%TYPE,
     p_description processes.Step.description%TYPE)
@@ -516,7 +516,7 @@ SELECT p_decision_id, p_next_step_id, p_weight, p_guard FOR UPDATE;
 $$ LANGUAGE sql SECURITY DEFINER
                 SET search_path = processes, public, pg_temp;
 
-COMMENT ON FUNCTION processes.f_add_option_to_decision(p_decision_id processes.Option.decision_id%TYPE,
+COMMENT ON FUNCTION processes.f_add_option_to_decision_existing_next(p_decision_id processes.Option.decision_id%TYPE,
     p_weight processes.Option.weight%TYPE,
     p_guard processes.Option.guard%TYPE)
     IS 'This function is used to add an option leading to an existing next step.';
@@ -640,7 +640,7 @@ WHERE step_link_id = p_step_link_id;
 $$ LANGUAGE sql SECURITY DEFINER
                 SET search_path = processes, public, pg_temp;
 
-COMMENT ON FUNCTION processes.f_remove_process_link(p_process_link_id processes.Process_link.process_link_id%TYPE)
+COMMENT ON FUNCTION processes.f_remove_step_link(p_process_link_id processes.Process_link.process_link_id%TYPE)
     IS 'This function is used to remove an associated link from an existing step.';
 
 
