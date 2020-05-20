@@ -38,7 +38,6 @@ COMMENT ON FUNCTION processes.f_is_administrator(p_email processes.Administrator
     IS 'This function is used to authenticate a process administrator. p_email is an administrator''s case-insensitive email, p_password is a plain-text password. This function returns TRUE if the administrator with this combination is registered and is active.';
 
 
-
 -- Processes
 
 CREATE OR REPLACE FUNCTION processes.f_register_process(p_name processes.Process.name%TYPE,
@@ -74,8 +73,8 @@ COMMENT ON FUNCTION processes.f_change_process_password(p_process_id processes.P
 
 
 CREATE OR REPLACE FUNCTION processes.f_change_name_and_description(p_process_id processes.Process.process_id%TYPE,
-                                                                            p_name processes.Process.name%TYPE,
-                                                                            p_description processes.Process.description%TYPE)
+                                                                   p_name processes.Process.name%TYPE,
+                                                                   p_description processes.Process.description%TYPE)
     RETURNS VOID AS $$
 UPDATE processes.Process
 SET name        = p_name,
@@ -517,6 +516,7 @@ $$ LANGUAGE sql SECURITY DEFINER
                 SET search_path = processes, public, pg_temp;
 
 COMMENT ON FUNCTION processes.f_add_option_to_decision_existing_next(p_decision_id processes.Option.decision_id%TYPE,
+    p_next_step_id processes.Step.next_step_id%TYPE,
     p_weight processes.Option.weight%TYPE,
     p_guard processes.Option.guard%TYPE)
     IS 'This function is used to add an option leading to an existing next step.';
