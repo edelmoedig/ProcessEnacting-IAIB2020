@@ -41,6 +41,41 @@ EXECUTE FUNCTION processes.f_change_process_status();
 
 
 
+CREATE OR REPLACE FUNCTION processes.f_activate_process_no_valid_last_step() RETURNS trigger AS
+$$
+BEGIN
+    IF EXISTS(SELECT Action.action_id AS step_id
+              FROM Action
+                       INNER JOIN (Step INNER JOIN Process ON NEW.process_id = Step.process_id)
+                                  ON Action.action_id = Step.step_id
+              WHERE Step.next_step_id IS NULL
+                AND Action.action_id NOT IN
+                    (SELECT Action_in_parallel_activity.action_id FROM Action_in_parallel_activity)
+              UNION
+              SELECT Parallel_activity.parallel_activity_id
+              FROM Parallel_activity
+                       INNER JOIN (Step INNER JOIN Process ON NEW.process_id = Step.process_id)
+                                  ON Parallel_activity.parallel_activity_id = Step.step_id
+              WHERE Step.next_step_id IS NULL) THEN
+        RETURN NEW;
+    ELSE
+        RAISE EXCEPTION 'This process does not have any valid final steps.';
+    END IF;
+END ;
+$$ LANGUAGE plpgsql SECURITY DEFINER
+                    SET search_path = processes, public, pg_temp;
+
+COMMENT ON FUNCTION processes.f_activate_process_no_valid_last_step() IS 'This function ensures that only processes that have at least one action or parallel activity that does not refer to the next step can be activated.';
+
+CREATE TRIGGER trig_activate_process_no_valid_last_step
+    BEFORE UPDATE OF process_status_type_code
+    ON processes.Process
+    FOR EACH ROW
+    WHEN (OLD.process_status_type_code <> NEW.process_status_type_code AND NEW.process_status_type_code = 2)
+EXECUTE FUNCTION processes.f_activate_process_options_no_next_step();
+
+
+
 CREATE OR REPLACE FUNCTION processes.f_activate_process_options_no_next_step() RETURNS trigger AS
 $$
 DECLARE
