@@ -420,6 +420,7 @@ $$ LANGUAGE sql SECURITY DEFINER
 
 COMMENT ON FUNCTION processes.f_add_decision_to_step_existing_next(p_process_id processes.Step.process_id%TYPE,
     p_previous_step_id processes.Step.next_step_id%TYPE,
+    p_next_step_id processes.Step.next_step_id%TYPE,
     p_description processes.Step.description%TYPE)
     IS 'This function is used to add a decision step that is connected to an existing previous step and leads to an existing step.';
 
@@ -446,7 +447,7 @@ COMMENT ON FUNCTION processes.f_add_decision_to_option(p_process_id processes.St
 
 
 
-CREATE OR REPLACE FUNCTION processes.f_add_decision_to_step_existing_next(p_process_id processes.Step.process_id%TYPE,
+CREATE OR REPLACE FUNCTION processes.f_add_decision_to_option_existing_next(p_process_id processes.Step.process_id%TYPE,
                                                                           p_option_id processes.Option.option_id%TYPE,
                                                                           p_next_step_id processes.Step.next_step_id%TYPE,
                                                                           p_description processes.Step.description%TYPE)
@@ -461,7 +462,7 @@ FROM add_step;
 $$ LANGUAGE sql SECURITY DEFINER
                 SET search_path = processes, public, pg_temp;
 
-COMMENT ON FUNCTION processes.f_add_decision_to_step_existing_next(p_process_id processes.Step.process_id%TYPE,
+COMMENT ON FUNCTION processes.f_add_decision_to_option_existing_next(p_process_id processes.Step.process_id%TYPE,
     p_option_id processes.Option.option_id%TYPE,
     p_previous_step_id processes.Step.next_step_id%TYPE,
     p_description processes.Step.description%TYPE)
