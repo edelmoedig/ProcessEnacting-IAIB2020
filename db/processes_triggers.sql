@@ -48,9 +48,9 @@ BEGIN
               FROM Action
                        INNER JOIN (Step INNER JOIN Process ON NEW.process_id = Step.process_id)
                                   ON Action.action_id = Step.step_id
-              WHERE Step.next_step_id IS NULL
-                AND Action.action_id NOT IN
-                    (SELECT Action_in_parallel_activity.action_id FROM Action_in_parallel_activity)) THEN
+              WHERE Step.next_step_id IS NULL FOR UPDATE
+                AND Action.action_id NOT EXISTS
+                    (SELECT Action_in_parallel_activity.action_id FROM Action_in_parallel_activity FOR UPDATE)) THEN
         RETURN NEW;
     ELSE
         RAISE EXCEPTION 'This process does not have any valid final steps.';
@@ -76,13 +76,13 @@ DECLARE
     v_count bigint;
 BEGIN
     v_count := (SELECT COUNT(*)
-                FROM (SELECT processes.Option.next_step_id
-                      FROM processes.Option
-                               INNER JOIN (processes.Decision INNER JOIN (processes.Step INNER JOIN processes.Process
-                          ON processes.Step.process_id = processes.Process.process_id)
+                FROM (SELECT Option.next_step_id
+                      FROM Option
+                               INNER JOIN (Decision INNER JOIN (Step INNER JOIN Process
+                          ON Step.process_id = Process.process_id)
                           ON step_id = decision_id)
-                                          ON processes.Option.decision_id = processes.Decision.decision_id
-                      WHERE processes.Option.next_step_id IS NULL FOR UPDATE) AS Option_with_no_next_step);
+                                          ON Option.decision_id = Decision.decision_id
+                      WHERE Option.next_step_id IS NULL FOR UPDATE) AS Option_with_no_next_step);
     IF v_count > 0 THEN
         RAISE EXCEPTION 'There are % options at the decision steps of this process
             that have no next step assigned to them. Every option must lead to the next
@@ -346,7 +346,7 @@ CREATE TRIGGER trig_change_option_next_step
     ON processes.Option
     FOR EACH ROW
     WHEN (OLD.next_step_id IS NOT NULL AND NEW.next_step_id IS NOT NULL)
-EXECUTE FUNCTION processes.f_change_step_next_step();
+EXECUTE FUNCTION processes.f_change_option_next_step();
 
 
 
@@ -370,9 +370,9 @@ EXECUTE FUNCTION processes.f_forget_process();
 
 CREATE OR REPLACE FUNCTION processes.f_edit_process_step() RETURNS trigger AS $$
 BEGIN
-    IF ((SELECT processes.Process.process_status_type_code
+    IF ((SELECT Process.process_status_type_code
          FROM processes.Process
-         WHERE processes.Process.process_id = OLD.process_id FOR UPDATE) NOT IN
+         WHERE Process.process_id = OLD.process_id FOR UPDATE) NOT IN
         (1, 3)) THEN
         RAISE EXCEPTION 'Process''s steps can only be edited if it''s status is "On hold" or "Inactive".';
     ELSE
@@ -394,9 +394,9 @@ EXECUTE FUNCTION processes.f_edit_process_step();
 
 CREATE OR REPLACE FUNCTION processes.f_remove_process_step() RETURNS trigger AS $$
 BEGIN
-    IF ((SELECT processes.Process.process_status_type_code
+    IF ((SELECT Process.process_status_type_code
          FROM processes.Process
-         WHERE processes.Process.process_id = OLD.process_id FOR UPDATE) <> 1) THEN
+         WHERE Process.process_id = OLD.process_id FOR UPDATE) <> 1) THEN
         RAISE EXCEPTION 'Process''s steps can only be removed if it''s status is "On hold".';
     ELSE
         RETURN OLD;
@@ -435,10 +435,10 @@ EXECUTE FUNCTION processes.f_remove_process_step_with_next_step();
 
 CREATE OR REPLACE FUNCTION processes.f_edit_decision_option() RETURNS trigger AS $$
 BEGIN
-    IF ((SELECT processes.Process.process_status_type_code
+    IF ((SELECT Process.process_status_type_code
          FROM processes.Process
-                  INNER JOIN processes.Step ON processes.Process.process_id = processes.Step.process_id
-         WHERE processes.Step.step_id = NEW.decision_id FOR UPDATE) NOT IN (1, 3)) THEN
+                  INNER JOIN processes.Step ON Process.process_id = Step.process_id
+         WHERE Step.step_id = NEW.decision_id FOR UPDATE) NOT IN (1, 3)) THEN
         RAISE EXCEPTION 'Decision''s options can only be edited if its associated process''s status is "On hold" or "Inactive".';
     ELSE
         RETURN NEW;
@@ -459,10 +459,10 @@ EXECUTE FUNCTION processes.f_edit_decision_option();
 
 CREATE OR REPLACE FUNCTION processes.f_remove_decision_option() RETURNS trigger AS $$
 BEGIN
-    IF ((SELECT processes.Process.process_status_type_code
+    IF ((SELECT Process.process_status_type_code
          FROM processes.Process
-                  INNER JOIN processes.Step ON processes.Process.process_id = processes.Step.process_id
-         WHERE processes.Step.step_id = NEW.decision_id FOR UPDATE) <> 1) THEN
+                  INNER JOIN processes.Step ON Process.process_id = Step.process_id
+         WHERE Step.step_id = NEW.decision_id FOR UPDATE) <> 1) THEN
         RAISE EXCEPTION 'Decision''s options can only be removed if its associated process''s status is "On hold".';
     ELSE
         RETURN OLD;
@@ -501,9 +501,9 @@ EXECUTE FUNCTION processes.f_remove_decision_option_with_next_step();
 
 CREATE OR REPLACE FUNCTION processes.f_add_step() RETURNS trigger AS $$
 BEGIN
-    IF ((SELECT processes.Process.process_status_type_code
+    IF ((SELECT Process.process_status_type_code
          FROM processes.Process
-         WHERE processes.Process.process_id = NEW.process_id FOR UPDATE) <> 1) THEN
+         WHERE Process.process_id = NEW.process_id FOR UPDATE) <> 1) THEN
         RAISE EXCEPTION 'New steps cannot be added to published processes.';
     ELSE
         RETURN NEW;
@@ -524,10 +524,10 @@ EXECUTE FUNCTION processes.f_add_step();
 
 CREATE OR REPLACE FUNCTION processes.f_add_option() RETURNS trigger AS $$
 BEGIN
-    IF ((SELECT processes.Process.process_status_type_code
+    IF ((SELECT Process.process_status_type_code
          FROM processes.Process
-                  INNER JOIN processes.Step ON processes.Process.process_id = processes.Step.process_id
-         WHERE processes.Step.step_id = NEW.decision_id FOR UPDATE) <> 1) THEN
+                  INNER JOIN processes.Step ON Process.process_id = Step.process_id
+         WHERE Step.step_id = NEW.decision_id FOR UPDATE) <> 1) THEN
         RAISE EXCEPTION 'New options cannot be added at decision steps of published processes.';
     ELSE
         RETURN NEW;
@@ -615,10 +615,10 @@ EXECUTE FUNCTION processes.f_edit_process_link();
 
 CREATE OR REPLACE FUNCTION processes.f_add_step_link() RETURNS trigger AS $$
 BEGIN
-    IF ((SELECT processes.Process.process_status_type_code
+    IF ((SELECT Process.process_status_type_code
          FROM processes.Process
-                  INNER JOIN (processes.Step_link INNER JOIN processes.Step ON processes.Step_link.step_id = processes.Step.step_id)
-                             ON processes.Process.process_id = processes.Step.process_id FOR UPDATE) NOT IN (1, 3)) THEN
+                  INNER JOIN (processes.Step_link INNER JOIN processes.Step ON Step_link.step_id = Step.step_id)
+                             ON Process.process_id = Step.process_id FOR UPDATE) NOT IN (1, 3)) THEN
         RAISE EXCEPTION 'New project links cannot be added to the steps of active and ended processes.';
     ELSE
         RETURN NEW;
@@ -639,10 +639,10 @@ EXECUTE FUNCTION processes.f_add_step_link();
 
 CREATE OR REPLACE FUNCTION processes.f_remove_step_link() RETURNS trigger AS $$
 BEGIN
-    IF ((SELECT processes.Process.process_status_type_code
+    IF ((SELECT Process.process_status_type_code
          FROM processes.Process
-                  INNER JOIN (processes.Step_link INNER JOIN processes.Step ON processes.Step_link.step_id = processes.Step.step_id)
-                             ON processes.Process.process_id = processes.Step.process_id FOR UPDATE) NOT IN (1, 3)) THEN
+                  INNER JOIN (processes.Step_link INNER JOIN processes.Step ON Step_link.step_id = Step.step_id)
+                             ON Process.process_id = Step.process_id FOR UPDATE) NOT IN (1, 3)) THEN
         RAISE EXCEPTION 'Step links cannot be removed from active and ended processes.';
     ELSE
         RETURN OLD;
