@@ -1,11 +1,11 @@
 CREATE OR REPLACE VIEW processes.all_processes WITH (security_barrier) AS
 SELECT Process.process_id,
-       Process.name                                                                               AS process_name,
-       Process.description                                                                        AS process_description,
-       Process.password IS NOT NULL                                                               AS has_password,
-       Process_status_type.name                                                                   AS current_status,
+       Process.name                                                                                         AS process_name,
+       Process.description                                                                                  AS process_description,
+       Process.password IS NOT NULL                                                                         AS has_password,
+       Process_status_type.name                                                                             AS current_status,
        format('%1$s %2$s', trim(processes.Administrator.given_name), trim(processes.Administrator.surname)) AS owner,
-       Process.first_step_id                                                                      AS first_step,
+       Process.first_step_id                                                                                AS first_step,
        Process.reg_time
 FROM processes.Process_status_type
          INNER JOIN (processes.Administrator INNER JOIN processes.Process ON processes.Administrator.administrator_id = processes.Process.owner_id)
@@ -27,21 +27,21 @@ FROM processes.Process_status_type
          INNER JOIN processes.Process
                     ON processes.Process_status_type.process_status_type_code =
                        processes.Process.process_status_type_code
-WHERE processes.Process_status_type.process_status_type_code IN (1, 2, 3);
+WHERE processes.Process.process_status_type_code IN (1, 2, 3);
 
 COMMENT ON VIEW processes.active_inactive_on_hold_processes IS 'This view shows basic information about every active, inactive, and never activated (on hold) process.';
 
 CREATE OR REPLACE VIEW processes.active_processes WITH (security_barrier) AS
 SELECT Process.process_id,
-       Process.name                                                                               AS process_name,
-       Process.description                                                                        AS process_description,
-       Process.password IS NOT NULL                                                               AS has_password,
+       Process.name                                                                                         AS process_name,
+       Process.description                                                                                  AS process_description,
+       Process.password IS NOT NULL                                                                         AS has_password,
        format('%1$s %2$s', trim(processes.Administrator.given_name), trim(processes.Administrator.surname)) AS owner,
-       Process.first_step_id                                                                      AS first_step,
+       Process.first_step_id                                                                                AS first_step,
        Process.reg_time
-FROM processes.Process_status_type
-         INNER JOIN (processes.Administrator INNER JOIN processes.Process ON processes.Administrator.administrator_id = processes.Process.owner_id)
-WHERE processes.Process_status_type.process_status_type_code = 2;
+FROM processes.Administrator
+         INNER JOIN processes.Process ON processes.Administrator.administrator_id = processes.Process.owner_id
+WHERE processes.Process.process_status_type_code = 2;
 
 COMMENT ON VIEW processes.active_processes IS 'This view shows basic information about every active process.';
 
@@ -58,7 +58,8 @@ FROM processes.Step
 COMMENT ON VIEW processes.process_steps IS 'This view shows information about every step including whether the step is a decision step or a parallel activity.';
 
 CREATE OR REPLACE VIEW processes.parallel_actions WITH (security_barrier) AS
-    SELECT parallel_activity_id, action_id FROM processes.Action_in_parallel_activity;
+SELECT parallel_activity_id, action_id
+FROM processes.Action_in_parallel_activity;
 
 COMMENT ON VIEW processes.process_steps IS 'This view shows information about every action step inside a parallel activity.';
 
