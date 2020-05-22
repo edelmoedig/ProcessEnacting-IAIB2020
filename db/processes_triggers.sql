@@ -308,7 +308,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER
 
 COMMENT ON FUNCTION processes.f_change_process_first_step() IS 'This function prevents reassigning the first step of a process.';
 
-CREATE TRIGGER trig_change_process_next_step
+CREATE TRIGGER trig_change_process_first_step
     BEFORE UPDATE
         OF first_step_id
     ON processes.Process
@@ -331,6 +331,25 @@ CREATE TRIGGER trig_change_step_next_step
     BEFORE UPDATE
         OF next_step_id
     ON processes.Step
+    FOR EACH ROW
+    WHEN (OLD.next_step_id IS NOT NULL AND NEW.next_step_id IS NOT NULL)
+EXECUTE FUNCTION processes.f_change_step_next_step();
+
+
+
+CREATE OR REPLACE FUNCTION processes.f_change_option_next_step() RETURNS trigger AS $$
+BEGIN
+    RAISE EXCEPTION 'Option''s next step cannot be reassigned without deleting the currently associated next step.';
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER
+                    SET search_path = processes, public, pg_temp;
+
+COMMENT ON FUNCTION processes.f_change_option_next_step() IS 'This function prevents reassigning the next step of an option.';
+
+CREATE TRIGGER trig_change_option_next_step
+    BEFORE UPDATE
+        OF next_step_id
+    ON processes.Option
     FOR EACH ROW
     WHEN (OLD.next_step_id IS NOT NULL AND NEW.next_step_id IS NOT NULL)
 EXECUTE FUNCTION processes.f_change_step_next_step();
