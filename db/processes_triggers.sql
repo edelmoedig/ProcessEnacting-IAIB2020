@@ -93,6 +93,8 @@ BEGIN
         RAISE EXCEPTION 'There are % options at the decision steps of this process
             that have no next step assigned to them. Every option must lead to the next
             step.', v_count;
+    ELSE
+        RETURN NEW;
     END IF;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER
@@ -125,6 +127,8 @@ BEGIN
                       HAVING Count(*) < 2) AS Decision_option_count);
     IF v_count > 0 THEN
         RAISE EXCEPTION 'There are % decision steps that have less than 2 options.', v_count;
+    ELSE
+        RETURN NEW;
     END IF;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER
