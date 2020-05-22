@@ -18,24 +18,18 @@ COMMENT ON FUNCTION processes.f_register_administrator(p_email processes.Adminis
 
 
 
-CREATE OR REPLACE FUNCTION processes.f_is_administrator(p_email processes.Administrator.email%TYPE,
+CREATE OR REPLACE FUNCTION processes.f_get_administrator_id(p_email processes.Administrator.email%TYPE,
                                                         p_password processes.Administrator.password%TYPE)
-    RETURNS boolean AS $$
-DECLARE
-    v_result boolean;
-BEGIN
-    SELECT INTO v_result (password = processes.crypt(p_password, password))
+    RETURNS integer AS $$
+    SELECT processes.Administrator.administrator_id
     FROM processes.Administrator
-    WHERE lower(p_email) = lower(email)
+    WHERE lower(p_email) = lower(email) AND password = processes.crypt(p_password, password)
       AND is_active IS TRUE;
-    RETURN coalesce(v_result, FALSE);
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER
-                    STABLE
+$$ LANGUAGE sql SECURITY DEFINER
                     SET search_path = public, pg_temp;
 
-COMMENT ON FUNCTION processes.f_is_administrator(p_email processes.Administrator.email%TYPE, p_password processes.Administrator.password%TYPE)
-    IS 'This function is used to authenticate a process administrator. p_email is an administrator''s case-insensitive email, p_password is a plain-text password. This function returns TRUE if the administrator with this combination is registered and is active.';
+COMMENT ON FUNCTION processes.f_get_administrator_id(p_email processes.Administrator.email%TYPE, p_password processes.Administrator.password%TYPE)
+    IS 'This function is used to authenticate a process administrator. p_email is an administrator''s case-insensitive email, p_password is a plain-text password. This function returns the administrator''s id in case of sucess and NULL otherwise.';
 
 
 -- Processes
