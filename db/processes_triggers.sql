@@ -424,7 +424,7 @@ CREATE OR REPLACE FUNCTION processes.f_edit_decision_option() RETURNS trigger AS
 BEGIN
     IF ((SELECT processes.Process.process_status_type_code
          FROM processes.Process
-                  INNER JOIN (processes.Option INNER JOIN (processes.Decision INNER JOIN processes.Step ON processes.Decision.decision_id = processes.Step.step_id) ON OLD.decision_id = processes.Decision.decision_id)
+                  INNER JOIN (processes.Option INNER JOIN (processes.Decision INNER JOIN processes.Step ON processes.Decision.decision_id = processes.Step.step_id) ON OLD.decision_id = processes.Option.option_id)
                              ON processes.Process.process_id = processes.Step.process_id FOR UPDATE) NOT IN (1, 3)) THEN
         RAISE EXCEPTION 'Decision''s options can only be edited if its associated process''s status is "On hold" or "Inactive".';
     ELSE
