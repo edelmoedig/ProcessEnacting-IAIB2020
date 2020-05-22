@@ -444,7 +444,7 @@ BEGIN
     IF ((SELECT processes.Process.process_status_type_code
          FROM processes.Process
                   INNER JOIN processes.Step ON processes.Process.process_id = processes.Step.process_id
-         WHERE processes.Step.step_id = NEW.decision_id FOR UPDATE) NOT IN (2, 3)) THEN
+         WHERE processes.Step.step_id = NEW.decision_id FOR UPDATE) NOT IN (1, 3)) THEN
         RAISE EXCEPTION 'Decision''s options can only be edited if its associated process''s status is "On hold" or "Inactive".';
     ELSE
         RETURN NEW;
