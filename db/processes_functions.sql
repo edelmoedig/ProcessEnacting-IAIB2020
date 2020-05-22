@@ -66,6 +66,23 @@ COMMENT ON FUNCTION processes.f_change_process_password(p_process_id processes.P
 
 
 
+CREATE OR REPLACE FUNCTION processes.f_access_process_with_password(p_process_id processes.Process.process_id%TYPE,
+                                                               p_password processes.Process.password%TYPE)
+    RETURNS BOOLEAN AS $$
+DECLARE
+    result boolean;
+BEGIN
+    SELECT INTO result (password = processes.crypt(p_password, processes.gen_salt('bf', 11))) FROM processes.Process WHERE process_id = p_process_id;
+    RETURN coalesce(result, FALSE);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER STABLE
+                    SET search_path = public, pg_temp;
+
+COMMENT ON FUNCTION processes.f_change_process_password(p_process_id processes.Process.process_id%TYPE, p_password processes.Process.password%TYPE)
+    IS 'This function is used to authorize access to a password-protected process, returning TRUE if the password is correct and FALSE otherwise.';
+
+
+
 CREATE OR REPLACE FUNCTION processes.f_change_name_and_description(p_process_id processes.Process.process_id%TYPE,
                                                                    p_name processes.Process.name%TYPE,
                                                                    p_description processes.Process.description%TYPE)
