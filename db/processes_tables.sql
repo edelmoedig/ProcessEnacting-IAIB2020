@@ -138,7 +138,7 @@ CREATE TABLE processes.Option
     CONSTRAINT CHK_Option_guard_max_length CHECK (char_length(guard) <= 1000),
     CONSTRAINT AK_Option_decision_guard UNIQUE (decision_id, guard),
     CONSTRAINT FK_Option_Decision FOREIGN KEY (decision_id) REFERENCES processes.Decision (decision_id) ON DELETE CASCADE ON UPDATE NO ACTION,
-    CONSTRAINT FK_Option_Step FOREIGN KEY (next_step_id) REFERENCES processes.Step (step_id) ON DELETE CASCADE ON UPDATE NO ACTION
+    CONSTRAINT FK_Option_Step FOREIGN KEY (next_step_id) REFERENCES processes.Step (step_id) ON DELETE SET NULL ON UPDATE NO ACTION
 ) WITH (FILLFACTOR = 90);
 CREATE INDEX IX_Option_next_step ON processes.Option (next_step_id ASC);
 
