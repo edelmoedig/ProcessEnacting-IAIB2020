@@ -6,7 +6,7 @@ CREATE OR REPLACE FUNCTION processes.f_register_administrator(p_email processes.
                                                               p_surname processes.Administrator.surname%TYPE)
     RETURNS VOID AS $$
 INSERT INTO processes.Administrator(email, password, given_name, surname)
-SELECT p_email, processes.crypt(p_password, processes.gen_salt('bf', 11)), p_given_name, p_surname FOR UPDATE;
+SELECT p_email, processes.crypt(p_password, processes.gen_salt('bf', 11)), p_given_name, p_surname;
 $$ LANGUAGE sql SECURITY DEFINER
                 SET search_path = processes, public, pg_temp;
 
@@ -18,17 +18,18 @@ COMMENT ON FUNCTION processes.f_register_administrator(p_email processes.Adminis
 
 
 
-CREATE OR REPLACE FUNCTION processes.f_get_administrator_id(p_email processes.Administrator.email%TYPE,
-                                                        p_password processes.Administrator.password%TYPE)
+CREATE OR REPLACE FUNCTION processes.f_login_get_administrator_id(p_email processes.Administrator.email%TYPE,
+                                                                  p_password processes.Administrator.password%TYPE)
     RETURNS integer AS $$
-    SELECT processes.Administrator.administrator_id
-    FROM processes.Administrator
-    WHERE lower(p_email) = lower(email) AND password = processes.crypt(p_password, password)
-      AND is_active IS TRUE;
+SELECT processes.Administrator.administrator_id
+FROM processes.Administrator
+WHERE lower(p_email) = lower(email)
+  AND password = processes.crypt(p_password, password)
+  AND is_active IS TRUE;
 $$ LANGUAGE sql SECURITY DEFINER
-                    SET search_path = public, pg_temp;
+                SET search_path = public, pg_temp;
 
-COMMENT ON FUNCTION processes.f_get_administrator_id(p_email processes.Administrator.email%TYPE, p_password processes.Administrator.password%TYPE)
+COMMENT ON FUNCTION processes.f_login_get_administrator_id(p_email processes.Administrator.email%TYPE, p_password processes.Administrator.password%TYPE)
     IS 'This function is used to authenticate a process administrator. p_email is an administrator''s case-insensitive email, p_password is a plain-text password. This function returns the administrator''s id in case of sucess and NULL otherwise.';
 
 
@@ -40,7 +41,7 @@ CREATE OR REPLACE FUNCTION processes.f_register_process(p_name processes.Process
                                                         p_password processes.Process.password%TYPE)
     RETURNS VOID AS $$
 INSERT INTO processes.Process(name, description, owner_id, password)
-SELECT p_name, p_description, p_owner, processes.crypt(p_password, processes.gen_salt('bf', 11)) FOR UPDATE;
+SELECT p_name, p_description, p_owner, processes.crypt(p_password, processes.gen_salt('bf', 11));
 $$ LANGUAGE sql SECURITY DEFINER
                 SET search_path = processes, public, pg_temp;
 
@@ -57,9 +58,10 @@ CREATE OR REPLACE FUNCTION processes.f_change_process_password(p_process_id proc
     RETURNS VOID AS $$
 UPDATE processes.Process
 SET password = processes.crypt(p_password, processes.gen_salt('bf', 11))
-WHERE process_id = p_process_id
+WHERE process_id = p_process_id;
 $$ LANGUAGE sql SECURITY DEFINER
                 SET search_path = processes, public, pg_temp;
+
 
 COMMENT ON FUNCTION processes.f_change_process_password(p_process_id processes.Process.process_id%TYPE, p_password processes.Process.password%TYPE)
     IS 'This function is used to change a process''s password.';
@@ -67,25 +69,28 @@ COMMENT ON FUNCTION processes.f_change_process_password(p_process_id processes.P
 
 
 CREATE OR REPLACE FUNCTION processes.f_access_process_with_password(p_process_id processes.Process.process_id%TYPE,
-                                                               p_password processes.Process.password%TYPE)
+                                                                    p_password processes.Process.password%TYPE)
     RETURNS BOOLEAN AS $$
 DECLARE
     result boolean;
 BEGIN
-    SELECT INTO result (password = processes.crypt(p_password, processes.gen_salt('bf', 11))) FROM processes.Process WHERE process_id = p_process_id;
+    SELECT INTO result (password = processes.crypt(p_password, processes.gen_salt('bf', 11)))
+    FROM processes.Process
+    WHERE process_id = p_process_id;
     RETURN coalesce(result, FALSE);
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER STABLE
+$$ LANGUAGE plpgsql SECURITY DEFINER
+                    STABLE
                     SET search_path = public, pg_temp;
 
-COMMENT ON FUNCTION processes.f_change_process_password(p_process_id processes.Process.process_id%TYPE, p_password processes.Process.password%TYPE)
+COMMENT ON FUNCTION processes.f_access_process_with_password(p_process_id processes.Process.process_id%TYPE, p_password processes.Process.password%TYPE)
     IS 'This function is used to authorize access to a password-protected process, returning TRUE if the password is correct and FALSE otherwise.';
 
 
 
-CREATE OR REPLACE FUNCTION processes.f_change_name_and_description(p_process_id processes.Process.process_id%TYPE,
-                                                                   p_name processes.Process.name%TYPE,
-                                                                   p_description processes.Process.description%TYPE)
+CREATE OR REPLACE FUNCTION processes.f_change_process_name_and_description(p_process_id processes.Process.process_id%TYPE,
+                                                                           p_name processes.Process.name%TYPE,
+                                                                           p_description processes.Process.description%TYPE)
     RETURNS VOID AS $$
 UPDATE processes.Process
 SET name        = p_name,
@@ -94,7 +99,7 @@ WHERE process_id = p_process_id;
 $$ LANGUAGE sql SECURITY DEFINER
                 SET search_path = processes, public, pg_temp;
 
-COMMENT ON FUNCTION processes.f_change_name_and_description(p_process_id processes.Process.process_id%TYPE,
+COMMENT ON FUNCTION processes.f_change_process_name_and_description(p_process_id processes.Process.process_id%TYPE,
     p_name processes.Process.name%TYPE,
     p_description processes.Process.description%TYPE)
     IS 'This function is used to change an existing process''s name and description.';
@@ -505,7 +510,7 @@ CREATE OR REPLACE FUNCTION processes.f_add_option_to_decision(p_decision_id proc
                                                               p_guard processes.Option.guard%TYPE)
     RETURNS VOID AS $$
 INSERT INTO processes.Option(decision_id, weight, guard)
-SELECT p_decision_id, p_weight, p_guard FOR UPDATE;
+SELECT p_decision_id, p_weight, p_guard;
 $$ LANGUAGE sql SECURITY DEFINER
                 SET search_path = processes, public, pg_temp;
 
@@ -522,7 +527,7 @@ CREATE OR REPLACE FUNCTION processes.f_add_option_to_decision_existing_next(p_de
                                                                             p_guard processes.Option.guard%TYPE)
     RETURNS VOID AS $$
 INSERT INTO processes.Option(decision_id, next_step_id, weight, guard)
-SELECT p_decision_id, p_next_step_id, p_weight, p_guard FOR UPDATE;
+SELECT p_decision_id, p_next_step_id, p_weight, p_guard;
 $$ LANGUAGE sql SECURITY DEFINER
                 SET search_path = processes, public, pg_temp;
 
@@ -600,7 +605,7 @@ CREATE OR REPLACE FUNCTION processes.f_add_process_link(p_process_id processes.P
                                                         p_priority_nr processes.Process_link.priority_nr%TYPE)
     RETURNS VOID AS $$
 INSERT INTO processes.Process_link(process_id, url, name, priority_nr)
-SELECT p_process_id, p_url, p_name, p_priority_nr FOR UPDATE;
+SELECT p_process_id, p_url, p_name, p_priority_nr;
 $$ LANGUAGE sql SECURITY DEFINER
                 SET search_path = processes, public, pg_temp;
 
@@ -631,7 +636,7 @@ CREATE OR REPLACE FUNCTION processes.f_add_step_link(p_step_id processes.Step_li
                                                      p_priority_nr processes.Step_link.priority_nr%TYPE)
     RETURNS VOID AS $$
 INSERT INTO processes.Step_link(step_id, url, name, priority_nr)
-SELECT p_step_id, p_url, p_name, p_priority_nr FOR UPDATE;
+SELECT p_step_id, p_url, p_name, p_priority_nr;
 $$ LANGUAGE sql SECURITY DEFINER
                 SET search_path = processes, public, pg_temp;
 
@@ -661,7 +666,7 @@ CREATE OR REPLACE FUNCTION processes.f_add_decision_table(p_action_id processes.
                                                           p_name processes.Decision_table.name%TYPE)
     RETURNS VOID AS $$
 INSERT INTO processes.Decision_table(action_id, name)
-SELECT p_action_id, p_name FOR UPDATE;
+SELECT p_action_id, p_name;
 $$ LANGUAGE sql SECURITY DEFINER
                 SET search_path = processes, public, pg_temp;
 
@@ -690,7 +695,7 @@ CREATE OR REPLACE FUNCTION processes.f_add_decision_table_entry(p_decision_table
                                                                 p_seq_nr processes.Decision_table_entry.seq_nr%TYPE)
     RETURNS VOID AS $$
 INSERT INTO processes.Decision_table_entry(decision_table_id, condition, action, seq_nr)
-SELECT p_decision_table_id, p_condition, p_action, p_seq_nr FOR UPDATE;
+SELECT p_decision_table_id, p_condition, p_action, p_seq_nr;
 $$ LANGUAGE sql SECURITY DEFINER
                 SET search_path = processes, public, pg_temp;
 
@@ -753,7 +758,7 @@ COMMENT ON FUNCTION processes.f_change_decision_table_entry(p_decision_table_ent
 CREATE OR REPLACE FUNCTION processes.f_log_process_usage(p_process_id processes.Process_usage.process_id%TYPE)
     RETURNS VOID AS $$
 INSERT INTO processes.Process_usage(process_id)
-SELECT p_process_id FOR UPDATE;
+SELECT p_process_id;
 $$ LANGUAGE sql SECURITY DEFINER
                 SET search_path = processes, public, pg_temp;
 
@@ -766,7 +771,7 @@ CREATE OR REPLACE FUNCTION processes.f_log_step_click(p_process_usage_id process
                                                       p_step_id processes.Step_click.step_id%TYPE)
     RETURNS VOID AS $$
 INSERT INTO processes.Step_click(process_usage_id, step_id)
-SELECT p_process_usage_id, p_step_id FOR UPDATE;
+SELECT p_process_usage_id, p_step_id;
 $$ LANGUAGE sql SECURITY DEFINER
                 SET search_path = processes, public, pg_temp;
 

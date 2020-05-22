@@ -44,13 +44,13 @@ EXECUTE FUNCTION processes.f_change_process_status();
 CREATE OR REPLACE FUNCTION processes.f_activate_process_no_valid_last_step() RETURNS trigger AS
 $$
 BEGIN
-    IF EXISTS(SELECT Action.action_id AS step_id
-              FROM Action
-                       INNER JOIN (Step INNER JOIN Process ON NEW.process_id = Step.process_id)
-                                  ON Action.action_id = Step.step_id
-              WHERE Step.next_step_id IS NULL FOR UPDATE
-                AND Action.action_id NOT EXISTS
-                    (SELECT Action_in_parallel_activity.action_id FROM Action_in_parallel_activity FOR UPDATE)) THEN
+    IF EXISTS(SELECT action_id, process_id
+              FROM processes.Action
+                       INNER JOIN processes.Step ON action_id = step_id
+              WHERE process_id = NEW.process_id
+                AND NOT EXISTS(SELECT action_id
+                               FROM processes.Action_in_parallel_activity
+                               WHERE Action.action_id = Action_in_parallel_activity.action_id)) THEN
         RETURN NEW;
     ELSE
         RAISE EXCEPTION 'This process does not have any valid final steps.';
@@ -77,8 +77,8 @@ DECLARE
 BEGIN
     v_count := (SELECT COUNT(*)
                 FROM (SELECT Option.next_step_id
-                      FROM Option
-                               INNER JOIN (Decision INNER JOIN (Step INNER JOIN Process
+                      FROM processes.Option
+                               INNER JOIN (processes.Decision INNER JOIN (processes.Step INNER JOIN processes.Process
                           ON Step.process_id = Process.process_id)
                           ON step_id = decision_id)
                                           ON Option.decision_id = Decision.decision_id
@@ -110,14 +110,15 @@ $$
 DECLARE
     v_count bigint;
 BEGIN
+    LOCK TABLE processes.Process IN ACCESS EXCLUSIVE MODE;
     v_count := (SELECT Count(*)
-                FROM (SELECT processes.Decision.decision_id, Count(*)
+                FROM (SELECT Decision.decision_id, Count(*)
                       FROM processes.Option
                                INNER JOIN (processes.Decision INNER JOIN (processes.Step INNER JOIN processes.Process
-                          ON processes.Step.process_id = processes.Process.process_id)
-                          ON step_id = decision_id)
-                                          ON processes.Option.decision_id = processes.Decision.decision_id
-                      GROUP BY processes.Decision.decision_id
+                          ON Step.process_id = Process.process_id)
+                          ON Step.step_id = Decision.decision_id)
+                                          ON Option.decision_id = Decision.decision_id
+                      GROUP BY Decision.decision_id
                       HAVING Count(*) < 2) AS Decision_option_count);
     IF v_count > 0 THEN
         RAISE EXCEPTION 'There are % decision steps that have less than 2 options.', v_count;
