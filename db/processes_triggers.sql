@@ -396,8 +396,8 @@ CREATE OR REPLACE FUNCTION processes.f_remove_process_step() RETURNS trigger AS 
 BEGIN
     IF ((SELECT Process.process_status_type_code
          FROM processes.Process
-         WHERE Process.process_id = OLD.process_id FOR UPDATE) <> 1) THEN
-        RAISE EXCEPTION 'Process''s steps can only be removed if it''s status is "On hold".';
+         WHERE Process.process_id = OLD.process_id FOR UPDATE) NOT IN (1, 3)) THEN
+        RAISE EXCEPTION 'Process''s steps can only be removed if it''s status is "On hold" or "Inactive".';
     ELSE
         RETURN OLD;
     END IF;
@@ -405,7 +405,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER
                     SET search_path = processes, public, pg_temp;
 
-COMMENT ON FUNCTION processes.f_remove_process_step() IS 'This function prevents removal of steps from published processes.';
+COMMENT ON FUNCTION processes.f_remove_process_step() IS 'This function prevents removal of steps from active processes.';
 
 CREATE TRIGGER trig_remove_process_step
     BEFORE DELETE
@@ -462,8 +462,8 @@ BEGIN
     IF ((SELECT Process.process_status_type_code
          FROM processes.Process
                   INNER JOIN processes.Step ON Process.process_id = Step.process_id
-         WHERE Step.step_id = NEW.decision_id FOR UPDATE) <> 1) THEN
-        RAISE EXCEPTION 'Decision''s options can only be removed if its associated process''s status is "On hold".';
+         WHERE Step.step_id = NEW.decision_id FOR UPDATE) NOT IN (1, 3)) THEN
+        RAISE EXCEPTION 'Decision''s options can only be removed if its associated process''s status is "On hold" or "Inactive".';
     ELSE
         RETURN OLD;
     END IF;
@@ -471,7 +471,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER
                     SET search_path = processes, public, pg_temp;
 
-COMMENT ON FUNCTION processes.f_remove_decision_option() IS 'This function prevents removal of options associated with published processes.';
+COMMENT ON FUNCTION processes.f_remove_decision_option() IS 'This function prevents removal of options associated with active processes.';
 
 CREATE TRIGGER trig_remove_decision_option
     BEFORE DELETE
@@ -503,8 +503,8 @@ CREATE OR REPLACE FUNCTION processes.f_add_step() RETURNS trigger AS $$
 BEGIN
     IF ((SELECT Process.process_status_type_code
          FROM processes.Process
-         WHERE Process.process_id = NEW.process_id FOR UPDATE) <> 1) THEN
-        RAISE EXCEPTION 'New steps cannot be added to published processes.';
+         WHERE Process.process_id = NEW.process_id FOR UPDATE) NOT IN (1, 3)) THEN
+        RAISE EXCEPTION 'New steps cannot be added to active processes.';
     ELSE
         RETURN NEW;
     END IF;
@@ -512,7 +512,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER
                     SET search_path = processes, public, pg_temp;
 
-COMMENT ON FUNCTION processes.f_add_step() IS 'This function prevents adding steps to published processes.';
+COMMENT ON FUNCTION processes.f_add_step() IS 'This function prevents adding steps to active processes.';
 
 CREATE TRIGGER trig_add_step
     BEFORE INSERT
@@ -527,8 +527,8 @@ BEGIN
     IF ((SELECT Process.process_status_type_code
          FROM processes.Process
                   INNER JOIN processes.Step ON Process.process_id = Step.process_id
-         WHERE Step.step_id = NEW.decision_id FOR UPDATE) <> 1) THEN
-        RAISE EXCEPTION 'New options cannot be added at decision steps of published processes.';
+         WHERE Step.step_id = NEW.decision_id FOR UPDATE) NOT IN (1, 3)) THEN
+        RAISE EXCEPTION 'New options cannot be added at decision steps of active processes.';
     ELSE
         RETURN NEW;
     END IF;
@@ -536,7 +536,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER
                     SET search_path = processes, public, pg_temp;
 
-COMMENT ON FUNCTION processes.f_add_option() IS 'This function prevents adding options associated with published processes.';
+COMMENT ON FUNCTION processes.f_add_option() IS 'This function prevents adding options associated with active processes.';
 
 CREATE TRIGGER trig_add_option
     BEFORE INSERT
