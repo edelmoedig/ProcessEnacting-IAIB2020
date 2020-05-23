@@ -130,7 +130,8 @@ GRANT SELECT ON
     processes.decision_tables,
     processes.decision_table_entries,
     processes.process_links,
-    processes.step_links
+    processes.step_links,
+    processes.parallel_actions
     TO process_administrator;
 
 GRANT SELECT ON
@@ -142,5 +143,6 @@ GRANT SELECT ON
     processes.decision_tables,
     processes.decision_table_entries,
     processes.process_links,
-    processes.step_links
+    processes.step_links,
+    processes.parallel_actions
     TO process_user;
