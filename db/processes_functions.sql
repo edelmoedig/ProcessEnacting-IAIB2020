@@ -4,9 +4,10 @@ CREATE OR REPLACE FUNCTION processes.f_register_administrator(p_email processes.
                                                               p_password processes.Administrator.password%TYPE,
                                                               p_given_name processes.Administrator.given_name%TYPE,
                                                               p_surname processes.Administrator.surname%TYPE)
-    RETURNS VOID AS $$
+    RETURNS processes.Administrator.administrator_id%TYPE AS $$
 INSERT INTO processes.Administrator(email, password, given_name, surname)
-SELECT p_email, processes.crypt(p_password, processes.gen_salt('bf', 11)), p_given_name, p_surname;
+SELECT p_email, processes.crypt(p_password, processes.gen_salt('bf', 11)), p_given_name, p_surname
+RETURNING administrator_id;
 $$ LANGUAGE sql SECURITY DEFINER
                 SET search_path = processes, public, pg_temp;
 
@@ -694,13 +695,14 @@ COMMENT ON FUNCTION processes.f_switch_activation_decision_table(p_decision_tabl
 
 
 
-CREATE OR REPLACE FUNCTION processes.f_change_decision_table_name(p_decision_table_id processes.Decision_table_entry.decision_table_id%TYPE, p_name processes.Decision_table_entry.name%TYPE)
+CREATE OR REPLACE FUNCTION processes.f_change_decision_table_name(p_decision_table_id processes.Decision_table_entry.decision_table_id%TYPE,
+                                                                  p_name processes.Decision_table_entry.name%TYPE)
     RETURNS VOID AS $$
 UPDATE processes.Decision_table
 SET name = p_name
 WHERE decision_table_id = p_decision_table_id;
 $$ LANGUAGE sql SECURITY DEFINER
-    SET search_path = processes, public, pg_temp;
+                SET search_path = processes, public, pg_temp;
 
 COMMENT ON FUNCTION processes.f_change_decision_table_name(processes.Decision_table_entry.decision_table_id%TYPE, processes.Decision_table_entry.name%TYPE)
     IS 'This function is used to edit a decision table''s name.';
