@@ -658,7 +658,7 @@ COMMENT ON FUNCTION processes.f_remove_step_link() IS 'This function prevents re
 
 CREATE TRIGGER trig_remove_step_link
     BEFORE DELETE
-    ON processes.Process_link
+    ON processes.Step_link
     FOR EACH ROW
 EXECUTE FUNCTION processes.f_remove_step_link();
 
@@ -675,6 +675,6 @@ COMMENT ON FUNCTION processes.f_edit_step_link() IS 'This function prevents edit
 
 CREATE TRIGGER trig_edit_step_link
     BEFORE UPDATE
-    ON processes.Process_link
+    ON processes.Step_link
     FOR EACH ROW
 EXECUTE FUNCTION processes.f_edit_step_link();
