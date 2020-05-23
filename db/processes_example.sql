@@ -50,6 +50,7 @@ DO $$
         PERFORM processes.f_add_action_in_parallel_activity(process, parandamine, 'Registreeri ettenäitamisele');
         PERFORM processes.f_add_action_in_parallel_activity(process, parandamine, 'Paranda iseseisvat tööd');
         PERFORM processes.f_add_action_in_parallel_activity(process, parandamine, 'Lae failid Maurusesse');
+        PERFORM processes.f_activate_process(process);
     END
 $$;
 COMMIT;
