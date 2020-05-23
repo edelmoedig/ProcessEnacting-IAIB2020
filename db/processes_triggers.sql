@@ -615,7 +615,7 @@ CREATE OR REPLACE FUNCTION processes.f_remove_process_link() RETURNS trigger AS 
 BEGIN
     IF ((SELECT Process.process_status_type_code
          FROM processes.Process
-         WHERE Process.process_id = NEW.process_id FOR UPDATE) NOT IN
+         WHERE Process.process_id = OLD.process_id FOR UPDATE) NOT IN
         (1, 3)) THEN
         RAISE EXCEPTION 'Project links cannot be removed from active and ended processes.';
     ELSE
@@ -657,7 +657,7 @@ BEGIN
     IF ((SELECT Process.process_status_type_code
          FROM processes.Process
                   INNER JOIN Step ON Process.process_id = Step.process_id
-         WHERE Step.step_id = NEW.step_id FOR UPDATE) NOT IN (1, 3)) THEN
+         WHERE Step.step_id = OLD.step_id FOR UPDATE) NOT IN (1, 3)) THEN
         RAISE EXCEPTION 'New project links cannot be added to the steps of active and ended processes.';
     ELSE
         RETURN NEW;
