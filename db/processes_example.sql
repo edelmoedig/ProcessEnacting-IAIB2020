@@ -19,7 +19,7 @@ DO $$
         parandamine integer;
     BEGIN
         SELECT processes.f_register_administrator('admin@test.ee', '12345678', 'Admin', NULL) INTO administrator;
-        SELECT processes.f_register_process('Iseseisva töö esitamise ja hindamise protsess', 'Admebaaside II projekt.', 1, NULL) INTO process;
+        SELECT processes.f_register_process('Iseseisva töö esitamise ja hindamise protsess', 'Admebaaside II projekt.', administrator, NULL) INTO process;
         SELECT processes.f_add_first_parallel_activity(process, 'Ettevalmistus') INTO ettevalmistus;
         PERFORM processes.f_add_action_in_parallel_activity(process, ettevalmistus, 'Registreeri ettenäitamisele');
         PERFORM processes.f_add_action_in_parallel_activity(process, ettevalmistus, 'Lae failid Maurusesse');

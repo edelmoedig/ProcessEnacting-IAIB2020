@@ -719,11 +719,12 @@ EXECUTE FUNCTION processes.f_edit_step_link();
 
 CREATE OR REPLACE FUNCTION processes.f_add_decision_table() RETURNS trigger AS $$
 BEGIN
-    IF ((SELECT Process.process_status_type_code
-         FROM processes.Process
-                  INNER JOIN (processes.Decision_table INNER JOIN processes.Step ON Decision_table.action_id = Step.step_id)
-                             ON Process.process_id = Step.process_id
-         WHERE Decision_table.decision_table_id = NEW.decision_table_id FOR UPDATE) NOT IN (1, 3)) THEN
+    IF (SELECT process_status_type_code
+        FROM processes.Decision_table
+                 INNER JOIN
+             (processes.Step INNER JOIN processes.Process ON Step.process_id = Process.process_id)
+             ON Decision_table.action_id = Step.step_id
+        WHERE Decision_table.decision_table_id = NEW.decision_table_id FOR UPDATE) NOT IN (1, 3) THEN
         RAISE EXCEPTION 'Decision tables cannot be added to active and ended processes.';
     ELSE
         RETURN NEW;
@@ -744,11 +745,12 @@ EXECUTE FUNCTION processes.f_add_decision_table();
 
 CREATE OR REPLACE FUNCTION processes.f_remove_decision_table() RETURNS trigger AS $$
 BEGIN
-    IF ((SELECT Process.process_status_type_code
-         FROM processes.Process
-                  INNER JOIN (processes.Decision_table INNER JOIN processes.Step ON OLD.action_id = Step.step_id)
-                             ON Process.process_id = Step.process_id
-         WHERE Decision_table.decision_table_id = OLD.decision_table_id FOR UPDATE) NOT IN (1, 3)) THEN
+    IF (SELECT process_status_type_code
+        FROM processes.Decision_table
+                 INNER JOIN
+             (processes.Step INNER JOIN processes.Process ON Step.process_id = Process.process_id)
+             ON Decision_table.action_id = Step.step_id
+        WHERE Decision_table.decision_table_id = OLD.decision_table_id FOR UPDATE) NOT IN (1, 3) THEN
         RAISE EXCEPTION 'Decision tables cannot be removed from active and ended processes.';
     ELSE
         RETURN OLD;
@@ -769,11 +771,12 @@ EXECUTE FUNCTION processes.f_remove_decision_table();
 
 CREATE OR REPLACE FUNCTION processes.f_edit_decision_table() RETURNS trigger AS $$
 BEGIN
-    IF ((SELECT Process.process_status_type_code
-         FROM processes.Process
-                  INNER JOIN (processes.Decision_table INNER JOIN processes.Step ON NEW.action_id = Step.step_id)
-                             ON Process.process_id = Step.process_id
-         WHERE Decision_table.decision_table_id = NEW.decision_table_id FOR UPDATE) NOT IN (1, 3)) THEN
+    IF (SELECT process_status_type_code
+        FROM processes.Decision_table
+                 INNER JOIN
+             (processes.Step INNER JOIN processes.Process ON Step.process_id = Process.process_id)
+             ON Decision_table.action_id = Step.step_id
+        WHERE Decision_table.decision_table_id = NEW.decision_table_id FOR UPDATE) NOT IN (1, 3) THEN
         RAISE EXCEPTION 'Decision tables of active and ended processes cannot be edited.';
     ELSE
         RETURN NEW;
@@ -794,13 +797,13 @@ EXECUTE FUNCTION processes.f_edit_decision_table();
 
 CREATE OR REPLACE FUNCTION processes.f_add_decision_table_entry() RETURNS trigger AS $$
 BEGIN
-    IF ((SELECT Process.process_status_type_code
-         FROM processes.Process
-                  INNER JOIN processes.Step ON Process.process_id = Step.process_id
-                  INNER JOIN processes.Decision_table ON Decision_table.action_id = Step.step_id
-                  INNER JOIN processes.Decision_table_entry ON Decision_table.decision_table_id = NEW.decision_table_id
-         LIMIT 1 FOR UPDATE) NOT IN (1, 3)) THEN
-        RAISE EXCEPTION 'NEW entries cannot be added TO decision TABLES OF active AND ended processes.';
+    IF (SELECT process_status_type_code
+        FROM processes.Decision_table
+                 INNER JOIN
+             (processes.Step INNER JOIN processes.Process ON Step.process_id = Process.process_id)
+             ON Decision_table.action_id = Step.step_id
+        WHERE Decision_table.decision_table_id = NEW.decision_table_id FOR UPDATE) NOT IN (1, 3) THEN
+        RAISE EXCEPTION 'New entries cannot be added to decision tables active and ended processes.';
     ELSE
         RETURN NEW;
     END IF;
@@ -820,12 +823,12 @@ EXECUTE FUNCTION processes.f_add_decision_table_entry();
 
 CREATE OR REPLACE FUNCTION processes.f_remove_decision_table_entry() RETURNS trigger AS $$
 BEGIN
-    IF ((SELECT Process.process_status_type_code
-         FROM processes.Process
-                  INNER JOIN processes.Step ON Process.process_id = Step.process_id
-                  INNER JOIN processes.Decision_table ON Decision_table.action_id = Step.step_id
-                  INNER JOIN processes.Decision_table_entry ON Decision_table.decision_table_id = NEW.decision_table_id
-         LIMIT 1 FOR UPDATE) NOT IN (1, 3)) THEN
+    IF (SELECT process_status_type_code
+        FROM processes.Decision_table
+                 INNER JOIN
+             (processes.Step INNER JOIN processes.Process ON Step.process_id = Process.process_id)
+             ON Decision_table.action_id = Step.step_id
+        WHERE Decision_table.decision_table_id = OLD.decision_table_id FOR UPDATE) NOT IN (1, 3) THEN
         RAISE EXCEPTION 'Decision table entries cannot be removed from decision tables of active and ended processes.';
     ELSE
         RETURN OLD;
@@ -846,12 +849,12 @@ EXECUTE FUNCTION processes.f_remove_decision_table_entry();
 
 CREATE OR REPLACE FUNCTION processes.f_edit_decision_table_entry() RETURNS trigger AS $$
 BEGIN
-    IF ((SELECT Process.process_status_type_code
-         FROM processes.Process
-                  INNER JOIN processes.Step ON Process.process_id = Step.process_id
-                  INNER JOIN processes.Decision_table ON Decision_table.action_id = Step.step_id
-                  INNER JOIN processes.Decision_table_entry ON Decision_table.decision_table_id = NEW.decision_table_id
-         LIMIT 1 FOR UPDATE) NOT IN (1, 3)) THEN
+    IF (SELECT process_status_type_code
+        FROM processes.Decision_table
+                 INNER JOIN
+             (processes.Step INNER JOIN processes.Process ON Step.process_id = Process.process_id)
+             ON Decision_table.action_id = Step.step_id
+        WHERE Decision_table.decision_table_id = NEW.decision_table_id FOR UPDATE) NOT IN (1, 3) THEN
         RAISE EXCEPTION 'Decision table entries associated with the decision tables of active and ended processes cannot be edited.';
     ELSE
         RETURN NEW;
