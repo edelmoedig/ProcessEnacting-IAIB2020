@@ -13,7 +13,6 @@ $$ LANGUAGE sql SECURITY DEFINER
 
 COMMENT ON FUNCTION processes.f_register_administrator(p_email processes.Administrator.email%TYPE,
     p_password processes.Administrator.password%TYPE,
-    p_password processes.Administrator.password%TYPE,
     p_given_name processes.Administrator.given_name%TYPE,
     p_surname processes.Administrator.surname%TYPE)
     IS 'This function is used to register a new process administrator.';
