@@ -34,6 +34,7 @@ COMMENT ON FUNCTION processes.f_login_get_administrator_id(p_email processes.Adm
 
 
 -- Processes
+-- Processes
 
 CREATE OR REPLACE FUNCTION processes.f_register_process(p_name processes.Process.name%TYPE,
                                                         p_description processes.Process.description%TYPE,
@@ -690,6 +691,19 @@ $$ LANGUAGE sql SECURITY DEFINER
 
 COMMENT ON FUNCTION processes.f_switch_activation_decision_table(p_decision_table_id processes.Decision_table_entry.decision_table_id%TYPE)
     IS 'This function activates a decision table if it is deactivated and deactivates it if it activated.';
+
+
+
+CREATE OR REPLACE FUNCTION processes.f_change_decision_table_name(p_decision_table_id processes.Decision_table_entry.decision_table_id%TYPE, p_name processes.Decision_table_entry.name%TYPE)
+    RETURNS VOID AS $$
+UPDATE processes.Decision_table
+SET name = p_name
+WHERE decision_table_id = p_decision_table_id;
+$$ LANGUAGE sql SECURITY DEFINER
+    SET search_path = processes, public, pg_temp;
+
+COMMENT ON FUNCTION processes.f_change_decision_table_name(processes.Decision_table_entry.decision_table_id%TYPE, processes.Decision_table_entry.name%TYPE)
+    IS 'This function is used to edit a decision table''s name.';
 
 
 

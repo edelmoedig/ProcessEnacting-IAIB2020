@@ -84,7 +84,8 @@ BEGIN
                           ON Step.process_id = Process.process_id)
                           ON step_id = decision_id)
                                           ON Option.decision_id = Decision.decision_id
-                      WHERE Option.next_step_id IS NULL) AS Option_with_no_next_step);
+                      WHERE Process.process_id = NEW.process_id
+                        AND Option.next_step_id IS NULL) AS Option_with_no_next_step);
     IF v_count > 0 THEN
         RAISE EXCEPTION 'There are % options at the decision steps of this process
             that have no next step assigned to them. Every option must lead to the next
@@ -120,6 +121,7 @@ BEGIN
                           ON Step.process_id = Process.process_id)
                           ON Step.step_id = Decision.decision_id)
                                           ON Option.decision_id = Decision.decision_id
+                      WHERE Process.process_id = NEW.process_id
                       GROUP BY Decision.decision_id
                       HAVING Count(*) < 2) AS Decision_option_count);
     IF v_count > 0 THEN
@@ -474,7 +476,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER
                     SET search_path = processes, public, pg_temp;
 
-COMMENT ON FUNCTION processes.f_remove_decision_option() IS 'This function prevents removal of options associated with active processes.';
+COMMENT ON FUNCTION processes.f_remove_decision_option() IS 'This function prevents removal of options associated with active and ended processes.';
 
 CREATE TRIGGER trig_remove_decision_option
     BEFORE DELETE
@@ -507,7 +509,7 @@ BEGIN
     IF ((SELECT Process.process_status_type_code
          FROM processes.Process
          WHERE Process.process_id = NEW.process_id FOR UPDATE) NOT IN (1, 3)) THEN
-        RAISE EXCEPTION 'New steps cannot be added to active processes.';
+        RAISE EXCEPTION 'New steps cannot be added to active and ended processes.';
     ELSE
         RETURN NEW;
     END IF;
@@ -515,7 +517,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER
                     SET search_path = processes, public, pg_temp;
 
-COMMENT ON FUNCTION processes.f_add_step() IS 'This function prevents adding steps to active processes.';
+COMMENT ON FUNCTION processes.f_add_step() IS 'This function prevents adding steps to active and ended processes.';
 
 CREATE TRIGGER trig_add_step
     BEFORE INSERT
@@ -525,13 +527,13 @@ EXECUTE FUNCTION processes.f_add_step();
 
 
 
-CREATE OR REPLACE FUNCTION processes.f_add_option() RETURNS trigger AS $$
+CREATE OR REPLACE FUNCTION processes.f_add_decision_option() RETURNS trigger AS $$
 BEGIN
     IF ((SELECT Process.process_status_type_code
          FROM processes.Process
                   INNER JOIN processes.Step ON Process.process_id = Step.process_id
          WHERE Step.step_id = NEW.decision_id FOR UPDATE) NOT IN (1, 3)) THEN
-        RAISE EXCEPTION 'New options cannot be added at decision steps of active processes.';
+        RAISE EXCEPTION 'New options cannot be added at decision steps of active and ended processes.';
     ELSE
         RETURN NEW;
     END IF;
@@ -539,13 +541,13 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER
                     SET search_path = processes, public, pg_temp;
 
-COMMENT ON FUNCTION processes.f_add_option() IS 'This function prevents adding options associated with active processes.';
+COMMENT ON FUNCTION processes.f_add_decision_option() IS 'This function prevents adding options associated with active and ended processes.';
 
-CREATE TRIGGER trig_add_option
+CREATE TRIGGER trig_add_decision_option
     BEFORE INSERT
     ON processes.Option
     FOR EACH ROW
-EXECUTE FUNCTION processes.f_add_option();
+EXECUTE FUNCTION processes.f_add_decision_option();
 
 
 
@@ -553,8 +555,7 @@ CREATE OR REPLACE FUNCTION processes.f_add_process_link() RETURNS trigger AS $$
 BEGIN
     IF ((SELECT Process.process_status_type_code
          FROM processes.Process
-                  INNER JOIN processes.Process_link
-                             ON Process.process_id = Process_link.process_id FOR UPDATE) NOT IN
+         WHERE Process.process_id = NEW.process_id FOR UPDATE) NOT IN
         (1, 3)) THEN
         RAISE EXCEPTION 'New project links cannot be added to active and ended processes.';
     ELSE
@@ -578,8 +579,7 @@ CREATE OR REPLACE FUNCTION processes.f_remove_process_link() RETURNS trigger AS 
 BEGIN
     IF ((SELECT Process.process_status_type_code
          FROM processes.Process
-                  INNER JOIN processes.Process_link
-                             ON Process.process_id = Process_link.process_id FOR UPDATE) NOT IN
+         WHERE Process.process_id = NEW.process_id FOR UPDATE) NOT IN
         (1, 3)) THEN
         RAISE EXCEPTION 'Project links cannot be removed from active and ended processes.';
     ELSE
@@ -620,8 +620,8 @@ CREATE OR REPLACE FUNCTION processes.f_add_step_link() RETURNS trigger AS $$
 BEGIN
     IF ((SELECT Process.process_status_type_code
          FROM processes.Process
-                  INNER JOIN (processes.Step_link INNER JOIN processes.Step ON Step_link.step_id = Step.step_id)
-                             ON Process.process_id = Step.process_id FOR UPDATE) NOT IN (1, 3)) THEN
+                  INNER JOIN Step ON Process.process_id = Step.process_id
+         WHERE Step.step_id = NEW.step_id FOR UPDATE) NOT IN (1, 3)) THEN
         RAISE EXCEPTION 'New project links cannot be added to the steps of active and ended processes.';
     ELSE
         RETURN NEW;
@@ -644,8 +644,8 @@ CREATE OR REPLACE FUNCTION processes.f_remove_step_link() RETURNS trigger AS $$
 BEGIN
     IF ((SELECT Process.process_status_type_code
          FROM processes.Process
-                  INNER JOIN (processes.Step_link INNER JOIN processes.Step ON Step_link.step_id = Step.step_id)
-                             ON Process.process_id = Step.process_id FOR UPDATE) NOT IN (1, 3)) THEN
+                  INNER JOIN Step ON Process.process_id = Step.process_id
+         WHERE Step.step_id = NEW.step_id FOR UPDATE) NOT IN (1, 3)) THEN
         RAISE EXCEPTION 'Step links cannot be removed from active and ended processes.';
     ELSE
         RETURN OLD;
@@ -678,3 +678,156 @@ CREATE TRIGGER trig_edit_step_link
     ON processes.Step_link
     FOR EACH ROW
 EXECUTE FUNCTION processes.f_edit_step_link();
+
+
+
+CREATE OR REPLACE FUNCTION processes.f_add_decision_table() RETURNS trigger AS $$
+BEGIN
+    IF ((SELECT Process.process_status_type_code
+         FROM processes.Process
+                  INNER JOIN (processes.Decision_table INNER JOIN processes.Step ON Decision_table.action_id = Step.step_id)
+                             ON Process.process_id = Step.process_id
+         WHERE Decision_table.decision_table_id = NEW.decision_table_id FOR UPDATE) NOT IN (1, 3)) THEN
+        RAISE EXCEPTION 'Decision tables cannot be added to active and ended processes.';
+    ELSE
+        RETURN NEW;
+    END IF;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER
+                    SET search_path = processes, public, pg_temp;
+
+COMMENT ON FUNCTION processes.f_add_decision_table() IS 'This function prevents adding new decision tables to the steps of active and ended processes.';
+
+CREATE TRIGGER trig_add_decision_table
+    BEFORE INSERT
+    ON processes.Decision_table
+    FOR EACH ROW
+EXECUTE FUNCTION processes.f_add_decision_table();
+
+
+
+CREATE OR REPLACE FUNCTION processes.f_remove_decision_table() RETURNS trigger AS $$
+BEGIN
+    IF ((SELECT Process.process_status_type_code
+         FROM processes.Process
+                  INNER JOIN (processes.Decision_table INNER JOIN processes.Step ON OLD.action_id = Step.step_id)
+                             ON Process.process_id = Step.process_id
+         WHERE Decision_table.decision_table_id = OLD.decision_table_id FOR UPDATE) NOT IN (1, 3)) THEN
+        RAISE EXCEPTION 'Decision tables cannot be removed from active and ended processes.';
+    ELSE
+        RETURN OLD;
+    END IF;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER
+                    SET search_path = processes, public, pg_temp;
+
+COMMENT ON FUNCTION processes.f_remove_decision_table() IS 'This function prevents removing existing links from the steps of active and ended processes.';
+
+CREATE TRIGGER trig_remove_decision_table
+    BEFORE DELETE
+    ON processes.Decision_table
+    FOR EACH ROW
+EXECUTE FUNCTION processes.f_remove_decision_table();
+
+
+
+CREATE OR REPLACE FUNCTION processes.f_edit_decision_table() RETURNS trigger AS $$
+BEGIN
+    IF ((SELECT Process.process_status_type_code
+         FROM processes.Process
+                  INNER JOIN (processes.Decision_table INNER JOIN processes.Step ON NEW.action_id = Step.step_id)
+                             ON Process.process_id = Step.process_id
+         WHERE Decision_table.decision_table_id = NEW.decision_table_id FOR UPDATE) NOT IN (1, 3)) THEN
+        RAISE EXCEPTION 'Decision tables of active and ended processes cannot be edited.';
+    ELSE
+        RETURN NEW;
+    END IF;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER
+                    SET search_path = processes, public, pg_temp;
+
+COMMENT ON FUNCTION processes.f_edit_decision_table() IS 'This function prevents editing of decision tables asssociated with active and ended processes.';
+
+CREATE TRIGGER trig_edit_decision_table
+    BEFORE UPDATE
+    ON processes.Decision_table
+    FOR EACH ROW
+EXECUTE FUNCTION processes.f_edit_decision_table();
+
+
+
+CREATE OR REPLACE FUNCTION processes.f_add_decision_table_entry() RETURNS trigger AS $$
+BEGIN
+    IF ((SELECT Process.process_status_type_code
+         FROM processes.Process
+                  INNER JOIN processes.Step ON Process.process_id = Step.process_id
+                  INNER JOIN processes.Decision_table ON Decision_table.action_id = Step.step_id
+                  INNER JOIN processes.Decision_table_entry ON Decision_table.decision_table_id = NEW.decision_table_id
+         LIMIT 1 FOR UPDATE) NOT IN (1, 3)) THEN
+        RAISE EXCEPTION 'NEW entries cannot be added TO decision TABLES OF active AND ended processes.';
+    ELSE
+        RETURN NEW;
+    END IF;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER
+                    SET search_path = processes, public, pg_temp;
+
+COMMENT ON FUNCTION processes.f_add_decision_table_entry() IS 'This function prevents adding new decision table entries associated with active and ended processes.';
+
+CREATE TRIGGER trig_add_decision_table_entry
+    BEFORE INSERT
+    ON processes.Decision_table_entry
+    FOR EACH ROW
+EXECUTE FUNCTION processes.f_add_decision_table_entry();
+
+
+
+CREATE OR REPLACE FUNCTION processes.f_remove_decision_table_entry() RETURNS trigger AS $$
+BEGIN
+    IF ((SELECT Process.process_status_type_code
+         FROM processes.Process
+                  INNER JOIN processes.Step ON Process.process_id = Step.process_id
+                  INNER JOIN processes.Decision_table ON Decision_table.action_id = Step.step_id
+                  INNER JOIN processes.Decision_table_entry ON Decision_table.decision_table_id = NEW.decision_table_id
+         LIMIT 1 FOR UPDATE) NOT IN (1, 3)) THEN
+        RAISE EXCEPTION 'Decision table entries cannot be removed from decision tables of active and ended processes.';
+    ELSE
+        RETURN OLD;
+    END IF;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER
+                    SET search_path = processes, public, pg_temp;
+
+COMMENT ON FUNCTION processes.f_remove_decision_table_entry() IS 'This function prevents removing table entries from decision tables associated with active and ended processes.';
+
+CREATE TRIGGER trig_remove_decision_table_entry
+    BEFORE DELETE
+    ON processes.Decision_table_entry
+    FOR EACH ROW
+EXECUTE FUNCTION processes.f_remove_decision_table_entry();
+
+
+
+CREATE OR REPLACE FUNCTION processes.f_edit_decision_table_entry() RETURNS trigger AS $$
+BEGIN
+    IF ((SELECT Process.process_status_type_code
+         FROM processes.Process
+                  INNER JOIN processes.Step ON Process.process_id = Step.process_id
+                  INNER JOIN processes.Decision_table ON Decision_table.action_id = Step.step_id
+                  INNER JOIN processes.Decision_table_entry ON Decision_table.decision_table_id = NEW.decision_table_id
+         LIMIT 1 FOR UPDATE) NOT IN (1, 3)) THEN
+        RAISE EXCEPTION 'Decision table entries associated with the decision tables of active and ended processes cannot be edited.';
+    ELSE
+        RETURN NEW;
+    END IF;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER
+                    SET search_path = processes, public, pg_temp;
+
+COMMENT ON FUNCTION processes.f_edit_decision_table_entry() IS 'This function prevents editing table entries of decision tables associated with active and ended processes.';
+
+CREATE TRIGGER trig_edit_decision_table_entry
+    BEFORE UPDATE
+    ON processes.Decision_table_entry
+    FOR EACH ROW
+EXECUTE FUNCTION processes.f_edit_decision_table_entry();
