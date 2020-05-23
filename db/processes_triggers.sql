@@ -115,13 +115,13 @@ DECLARE
 BEGIN
     LOCK TABLE processes.Process, processes.Option, processes.Decision, processes.Step IN ACCESS EXCLUSIVE MODE;
     v_count := (SELECT Count(*)
-                FROM (SELECT Decision.decision_id, Count(*)
-                      FROM processes.Option
-                               INNER JOIN (processes.Decision INNER JOIN (processes.Step INNER JOIN processes.Process
-                          ON Step.process_id = Process.process_id)
-                          ON Step.step_id = Decision.decision_id)
-                                          ON Option.decision_id = Decision.decision_id
-                      WHERE Process.process_id = NEW.process_id
+                FROM (SELECT Decision.decision_id, count(*)
+                      FROM processes.Decision
+                               INNER JOIN processes.Step ON decision_id = step_id
+                               LEFT JOIN processes.Option
+                                         ON Option.decision_id =
+                                            Decision.decision_id
+                      WHERE Step.process_id = NEW.process_id
                       GROUP BY Decision.decision_id
                       HAVING Count(*) < 2) AS Decision_option_count);
     IF v_count > 0 THEN
@@ -141,6 +141,42 @@ CREATE TRIGGER trig_activate_process_decision_less_than_2_options
     FOR EACH ROW
     WHEN (OLD.process_status_type_code <> NEW.process_status_type_code AND NEW.process_status_type_code = 2)
 EXECUTE FUNCTION processes.f_activate_process_decision_less_than_2_options();
+
+
+
+CREATE OR REPLACE FUNCTION processes.f_activate_process_parallel_activity_less_than_2_actions() RETURNS trigger AS
+$$
+DECLARE
+    v_count bigint;
+BEGIN
+    LOCK TABLE processes.Process, processes.Action_in_parallel_activity, processes.Parallel_activity, processes.Step IN ACCESS EXCLUSIVE MODE;
+    v_count := (SELECT Count(*)
+                FROM (SELECT Parallel_activity.parallel_activity_id, count(*)
+                      FROM processes.Parallel_activity
+                               INNER JOIN processes.Step ON parallel_activity_id = step_id
+                               LEFT JOIN processes.Action_in_parallel_activity
+                                         ON Action_in_parallel_activity.parallel_activity_id =
+                                            Parallel_activity.parallel_activity_id
+                      WHERE Step.process_id = NEW.process_id
+                      GROUP BY Parallel_activity.parallel_activity_id
+                      HAVING Count(*) < 2) AS Parallel_action_count);
+    IF v_count > 0 THEN
+        RAISE EXCEPTION 'There are % parallel activities that have less than 2 parallel actions.', v_count;
+    ELSE
+        RETURN NEW;
+    END IF;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER
+                    SET search_path = processes, public, pg_temp;
+
+COMMENT ON FUNCTION processes.f_activate_process_decision_less_than_2_options() IS 'This function ensures that only processes where every decision parallel activity has at least 2 associated actions can be activated.';
+
+CREATE TRIGGER trig_activate_process_parallel_activity_less_than_2_actions
+    BEFORE UPDATE OF process_status_type_code
+    ON processes.Process
+    FOR EACH ROW
+    WHEN (OLD.process_status_type_code <> NEW.process_status_type_code AND NEW.process_status_type_code = 2)
+EXECUTE FUNCTION processes.f_activate_process_parallel_activity_less_than_2_actions();
 
 
 
