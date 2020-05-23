@@ -83,7 +83,7 @@ CREATE TABLE processes.Step
     CONSTRAINT CHK_Step_description_not_only_whitespace CHECK (description !~ '^[[:space:]]*$'),
     CONSTRAINT CHK_Step_next_step_not_itself CHECK (next_step_id <> step_id),
     CONSTRAINT FK_Step_Step FOREIGN KEY (next_step_id) REFERENCES processes.Step (step_id) ON DELETE SET NULL ON UPDATE NO ACTION,
-    CONSTRAINT FK_Step_Process FOREIGN KEY (process_id) REFERENCES processes.Process (process_id) ON DELETE NO ACTION ON UPDATE NO ACTION
+    CONSTRAINT FK_Step_Process FOREIGN KEY (process_id) REFERENCES processes.Process (process_id) ON DELETE CASCADE ON UPDATE NO ACTION
 ) WITH (FILLFACTOR = 90);
 CREATE INDEX IX_Step_Process ON processes.Step (process_id ASC);
 CREATE INDEX IX_Step_next_step ON processes.Step (next_step_id ASC);

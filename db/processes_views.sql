@@ -49,7 +49,7 @@ CREATE OR REPLACE VIEW processes.process_steps WITH (security_barrier) AS
 SELECT step_id,
        CASE WHEN decision_id IS NULL THEN FALSE ELSE TRUE END          AS is_decision,
        CASE WHEN parallel_activity_id IS NULL THEN FALSE ELSE TRUE END AS is_parallel_activity,
-       description,
+       description                                                     AS step_description,
        next_step_id
 FROM processes.Step
          LEFT JOIN processes.Decision ON step_id = decision_id
@@ -59,22 +59,25 @@ COMMENT ON VIEW processes.process_steps IS 'This view shows information about ev
 
 CREATE OR REPLACE VIEW processes.parallel_actions WITH (security_barrier) AS
 SELECT parallel_activity_id, action_id
-FROM processes.Action_in_parallel_activity;
+FROM processes.Action_in_parallel_activity
+WITH CHECK OPTION;
 
-COMMENT ON VIEW processes.process_steps IS 'This view shows information about every action step inside a parallel activity.';
+COMMENT ON VIEW processes.parallel_actions IS 'This view shows action_id and parallel_activity_id of every action step inside a parallel activity.';
 
 CREATE OR REPLACE VIEW processes.decision_options WITH (security_barrier) AS
 SELECT decision_id, next_step_id, guard, weight
-FROM processes.Option;
+FROM processes.Option
+WITH CHECK OPTION;
 
-COMMENT ON VIEW processes.process_steps IS 'This view shows information about every option.';
+COMMENT ON VIEW processes.decision_options IS 'This view shows information about every option connected to a decision step.';
 
 CREATE OR REPLACE VIEW processes.decision_tables WITH (security_barrier) AS
 SELECT decision_table_id,
        action_id AS associated_step,
        name      AS decision_table_name,
        is_active
-FROM processes.Decision_table;
+FROM processes.Decision_table
+WITH CHECK OPTION;
 
 COMMENT ON VIEW processes.decision_tables IS 'This view shows information about every decision table.';
 
@@ -83,26 +86,29 @@ SELECT decision_table_id,
        condition,
        action,
        seq_nr
-FROM processes.Decision_table_entry;
+FROM processes.Decision_table_entry
+WITH CHECK OPTION;
 
 COMMENT ON VIEW processes.decision_table_entries IS 'This view shows information about every decision table entry.';
 
 CREATE OR REPLACE VIEW processes.process_links WITH (security_barrier) AS
 SELECT process_link_id,
        process_id,
-       url,
+       url  AS process_link_url,
        name AS process_link_name,
        priority_nr
-FROM processes.Process_link;
+FROM processes.Process_link
+WITH CHECK OPTION;
 
 COMMENT ON VIEW processes.process_links IS 'This view shows information about every link connected to a process.';
 
 CREATE OR REPLACE VIEW processes.step_links WITH (security_barrier) AS
 SELECT step_link_id,
        step_id,
-       url,
+       url  AS step_link_url,
        name AS step_link_name,
        priority_nr
-FROM processes.step_link;
+FROM processes.step_link
+WITH CHECK OPTION;
 
 COMMENT ON VIEW processes.step_links IS 'This view shows information about every link connected to a step.';

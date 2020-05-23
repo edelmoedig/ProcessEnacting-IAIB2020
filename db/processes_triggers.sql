@@ -50,7 +50,8 @@ BEGIN
               WHERE process_id = NEW.process_id
                 AND NOT EXISTS(SELECT action_id
                                FROM processes.Action_in_parallel_activity
-                               WHERE Action.action_id = Action_in_parallel_activity.action_id)) THEN
+                               WHERE Action.action_id = Action_in_parallel_activity.action_id)
+                  FOR UPDATE) THEN
         RETURN NEW;
     ELSE
         RAISE EXCEPTION 'This process does not have any valid final steps.';
@@ -75,6 +76,7 @@ $$
 DECLARE
     v_count bigint;
 BEGIN
+    LOCK TABLE processes.Process, processes.Option, processes.Decision, processes.Step IN ACCESS EXCLUSIVE MODE;
     v_count := (SELECT COUNT(*)
                 FROM (SELECT Option.next_step_id
                       FROM processes.Option
@@ -82,7 +84,7 @@ BEGIN
                           ON Step.process_id = Process.process_id)
                           ON step_id = decision_id)
                                           ON Option.decision_id = Decision.decision_id
-                      WHERE Option.next_step_id IS NULL FOR UPDATE) AS Option_with_no_next_step);
+                      WHERE Option.next_step_id IS NULL) AS Option_with_no_next_step);
     IF v_count > 0 THEN
         RAISE EXCEPTION 'There are % options at the decision steps of this process
             that have no next step assigned to them. Every option must lead to the next
@@ -110,7 +112,7 @@ $$
 DECLARE
     v_count bigint;
 BEGIN
-    LOCK TABLE processes.Process IN ACCESS EXCLUSIVE MODE;
+    LOCK TABLE processes.Process, processes.Option, processes.Decision, processes.Step IN ACCESS EXCLUSIVE MODE;
     v_count := (SELECT Count(*)
                 FROM (SELECT Decision.decision_id, Count(*)
                       FROM processes.Option
@@ -226,7 +228,7 @@ CREATE OR REPLACE FUNCTION processes.f_add_option_leading_to_action_in_parallel_
 BEGIN
     IF EXISTS(SELECT 1
               FROM processes.action_in_parallel_activity
-              WHERE processes.action_in_parallel_activity.action_id = NEW.next_step_id FOR UPDATE) THEN
+              WHERE action_in_parallel_activity.action_id = NEW.next_step_id FOR UPDATE) THEN
         RAISE EXCEPTION 'Options cannot lead to action steps in parallel activity, they must lead to the parallel activity.';
     ELSE
         RETURN NEW;
@@ -250,7 +252,7 @@ CREATE OR REPLACE FUNCTION processes.f_add_step_leading_to_action_in_parallel_ac
 BEGIN
     IF EXISTS(SELECT 1
               FROM processes.action_in_parallel_activity
-              WHERE processes.action_in_parallel_activity.action_id = NEW.step_id FOR UPDATE) THEN
+              WHERE action_id = NEW.step_id FOR UPDATE) THEN
         RAISE EXCEPTION 'Steps cannot lead to action steps in parallel activity, they must lead to the parallel activity.';
     ELSE
         RETURN NEW;
@@ -274,7 +276,7 @@ CREATE OR REPLACE FUNCTION processes.f_add_next_step_to_action_in_parallel_activ
 BEGIN
     IF EXISTS(SELECT 1
               FROM processes.action_in_parallel_activity
-              WHERE processes.action_in_parallel_activity.action_id = NEW.next_step_id FOR UPDATE) THEN
+              WHERE action_in_parallel_activity.action_id = NEW.next_step_id FOR UPDATE) THEN
         RAISE EXCEPTION 'Steps cannot lead to action steps in parallel activity, they must lead to the parallel activity.';
     ELSE
         RETURN NEW;
@@ -463,7 +465,7 @@ BEGIN
     IF ((SELECT Process.process_status_type_code
          FROM processes.Process
                   INNER JOIN processes.Step ON Process.process_id = Step.process_id
-         WHERE Step.step_id = NEW.decision_id FOR UPDATE) NOT IN (1, 3)) THEN
+         WHERE Step.step_id = OLD.decision_id FOR UPDATE) NOT IN (1, 3)) THEN
         RAISE EXCEPTION 'Decision''s options can only be removed if its associated process''s status is "On hold" or "Inactive".';
     ELSE
         RETURN OLD;
@@ -489,7 +491,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER
                     SET search_path = processes, public, pg_temp;
 
-COMMENT ON FUNCTION processes.f_remove_decision_option_with_next_step() IS 'This function prevents removal of options associated with next steps.';
+COMMENT ON FUNCTION processes.f_remove_decision_option_with_next_step() IS 'This function prevents removal of options that have an associated next step.';
 
 CREATE TRIGGER trig_remove_decision_option_with_next_step
     BEFORE DELETE
@@ -549,10 +551,10 @@ EXECUTE FUNCTION processes.f_add_option();
 
 CREATE OR REPLACE FUNCTION processes.f_add_process_link() RETURNS trigger AS $$
 BEGIN
-    IF ((SELECT processes.Process.process_status_type_code
+    IF ((SELECT Process.process_status_type_code
          FROM processes.Process
                   INNER JOIN processes.Process_link
-                             ON processes.Process.process_id = processes.Process_link.process_id FOR UPDATE) NOT IN
+                             ON Process.process_id = Process_link.process_id FOR UPDATE) NOT IN
         (1, 3)) THEN
         RAISE EXCEPTION 'New project links cannot be added to active and ended processes.';
     ELSE
@@ -574,10 +576,10 @@ EXECUTE FUNCTION processes.f_add_process_link();
 
 CREATE OR REPLACE FUNCTION processes.f_remove_process_link() RETURNS trigger AS $$
 BEGIN
-    IF ((SELECT processes.Process.process_status_type_code
+    IF ((SELECT Process.process_status_type_code
          FROM processes.Process
                   INNER JOIN processes.Process_link
-                             ON processes.Process.process_id = processes.Process_link.process_id FOR UPDATE) NOT IN
+                             ON Process.process_id = Process_link.process_id FOR UPDATE) NOT IN
         (1, 3)) THEN
         RAISE EXCEPTION 'Project links cannot be removed from active and ended processes.';
     ELSE

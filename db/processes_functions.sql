@@ -20,8 +20,8 @@ COMMENT ON FUNCTION processes.f_register_administrator(p_email processes.Adminis
 
 CREATE OR REPLACE FUNCTION processes.f_login_get_administrator_id(p_email processes.Administrator.email%TYPE,
                                                                   p_password processes.Administrator.password%TYPE)
-    RETURNS integer AS $$
-SELECT processes.Administrator.administrator_id
+    RETURNS processes.Administrator.administrator_id%TYPE AS $$
+SELECT administrator_id
 FROM processes.Administrator
 WHERE lower(p_email) = lower(email)
   AND password = processes.crypt(p_password, password)
@@ -39,9 +39,10 @@ CREATE OR REPLACE FUNCTION processes.f_register_process(p_name processes.Process
                                                         p_description processes.Process.description%TYPE,
                                                         p_owner processes.Process.owner_id%TYPE,
                                                         p_password processes.Process.password%TYPE)
-    RETURNS VOID AS $$
+    RETURNS processes.Process.process_id%TYPE AS $$
 INSERT INTO processes.Process(name, description, owner_id, password)
-SELECT p_name, p_description, p_owner, processes.crypt(p_password, processes.gen_salt('bf', 11));
+SELECT p_name, p_description, p_owner, processes.crypt(p_password, processes.gen_salt('bf', 11))
+RETURNING process_id;
 $$ LANGUAGE sql SECURITY DEFINER
                 SET search_path = processes, public, pg_temp;
 
@@ -115,7 +116,7 @@ $$ LANGUAGE sql SECURITY DEFINER
                 SET search_path = processes, public, pg_temp;
 
 COMMENT ON FUNCTION processes.f_activate_process(p_process_id processes.Process.process_id%TYPE)
-    IS 'This function is to activate a process. The process can only be activated if it''s current status is "On hold" or "Inactive", every step is designed correctly, and the process can successfully be completed.';
+    IS 'This function is used to activate a process. The process can only be activated if it''s current status is "On hold" or "Inactive", every step is designed correctly, and the process can successfully be completed.';
 
 
 
@@ -145,7 +146,7 @@ COMMENT ON FUNCTION processes.f_end_process(p_process_id processes.Process.proce
 
 
 CREATE OR REPLACE FUNCTION processes.f_forget_process(p_process_id processes.Process.process_id%TYPE)
-    RETURNS BOOLEAN AS $$
+    RETURNS boolean AS $$
 WITH forget_process AS (DELETE FROM processes.Process WHERE process_id = p_process_id RETURNING process_id)
 SELECT Count(*) > 0 AS result
 FROM forget_process;
@@ -160,7 +161,7 @@ COMMENT ON FUNCTION processes.f_forget_process(p_process_id processes.Process.pr
 
 CREATE OR REPLACE FUNCTION processes.f_add_first_action(p_process_id processes.Step.process_id%TYPE,
                                                         p_description processes.Step.description%TYPE)
-    RETURNS VOID AS $$
+    RETURNS processes.Step.step_id%TYPE AS $$
 WITH add_step AS (INSERT INTO processes.Step (process_id, description)
     VALUES (p_process_id, p_description) RETURNING step_id),
      add_action AS (INSERT INTO processes.Action (action_id) SELECT step_id FROM add_step),
@@ -180,7 +181,7 @@ COMMENT ON FUNCTION processes.f_add_first_action(p_process_id processes.Step.pro
 CREATE OR REPLACE FUNCTION processes.f_add_action_to_step(p_process_id processes.Step.process_id%TYPE,
                                                           p_previous_step_id processes.Step.next_step_id%TYPE,
                                                           p_description processes.Step.description%TYPE)
-    RETURNS VOID AS $$
+    RETURNS processes.Step.step_id%TYPE AS $$
 WITH add_step AS (INSERT INTO processes.Step (process_id, description)
     VALUES (p_process_id, p_description) RETURNING step_id),
      add_action AS (INSERT INTO processes.Action (action_id) SELECT step_id FROM add_step),
@@ -202,7 +203,7 @@ CREATE OR REPLACE FUNCTION processes.f_add_action_to_step_existing_next(p_proces
                                                                         p_previous_step_id processes.Step.next_step_id%TYPE,
                                                                         p_next_step_id processes.Step.next_step_id%TYPE,
                                                                         p_description processes.Step.description%TYPE)
-    RETURNS VOID AS $$
+    RETURNS processes.Step.step_id%TYPE AS $$
 WITH add_step AS (INSERT INTO processes.Step (process_id, next_step_id, description)
     VALUES (p_process_id, p_next_step_id, p_description) RETURNING step_id),
      add_action AS (INSERT INTO processes.Action (action_id) SELECT step_id FROM add_step),
@@ -224,7 +225,7 @@ COMMENT ON FUNCTION processes.f_add_action_to_step_existing_next(p_process_id pr
 CREATE OR REPLACE FUNCTION processes.f_add_action_to_option(p_process_id processes.Step.process_id%TYPE,
                                                             p_option_id processes.Option.option_id%TYPE,
                                                             p_description processes.Step.description%TYPE)
-    RETURNS VOID AS $$
+    RETURNS processes.Step.step_id%TYPE AS $$
 WITH add_step AS (INSERT INTO processes.Step (process_id, description)
     VALUES (p_process_id, p_description) RETURNING step_id),
      add_action AS (INSERT INTO processes.Action (action_id) SELECT step_id FROM add_step),
@@ -246,7 +247,7 @@ CREATE OR REPLACE FUNCTION processes.f_add_action_to_option_existing_next(p_proc
                                                                           p_option_id processes.Option.option_id%TYPE,
                                                                           p_next_step_id processes.Step.next_step_id%TYPE,
                                                                           p_description processes.Step.description%TYPE)
-    RETURNS VOID AS $$
+    RETURNS processes.Step.step_id%TYPE AS $$
 WITH add_step AS (INSERT INTO processes.Step (process_id, next_step_id, description)
     VALUES (p_process_id, p_next_step_id, p_description) RETURNING step_id),
      add_action AS (INSERT INTO processes.Action (action_id) SELECT step_id FROM add_step),
@@ -267,7 +268,7 @@ COMMENT ON FUNCTION processes.f_add_action_to_option_existing_next(p_process_id 
 
 CREATE OR REPLACE FUNCTION processes.f_add_first_parallel_activity(p_process_id processes.Step.process_id%TYPE,
                                                                    p_description processes.Step.description%TYPE)
-    RETURNS VOID AS $$
+    RETURNS processes.Step.step_id%TYPE AS $$
 WITH add_step AS (INSERT INTO processes.Step (process_id, description)
     VALUES (p_process_id, p_description) RETURNING step_id),
      add_parallel_activity
@@ -288,7 +289,7 @@ COMMENT ON FUNCTION processes.f_add_first_parallel_activity(p_process_id process
 CREATE OR REPLACE FUNCTION processes.f_add_parallel_activity_to_step(p_process_id processes.Step.process_id%TYPE,
                                                                      p_previous_step_id processes.Step.next_step_id%TYPE,
                                                                      p_description processes.Step.description%TYPE)
-    RETURNS VOID AS $$
+    RETURNS processes.Step.step_id%TYPE AS $$
 WITH add_step AS (INSERT INTO processes.Step (process_id, description)
     VALUES (p_process_id, p_description) RETURNING step_id),
      add_parallel_activity
@@ -311,7 +312,7 @@ CREATE OR REPLACE FUNCTION processes.f_add_parallel_activity_to_step_existing_ne
                                                                                    p_previous_step_id processes.Step.next_step_id%TYPE,
                                                                                    p_next_step_id processes.Step.next_step_id%TYPE,
                                                                                    p_description processes.Step.description%TYPE)
-    RETURNS VOID AS $$
+    RETURNS processes.Step.step_id%TYPE AS $$
 WITH add_step AS (INSERT INTO processes.Step (process_id, next_step_id, description)
     VALUES (p_process_id, p_next_step_id, p_description) RETURNING step_id),
      add_parallel_activity
@@ -334,7 +335,7 @@ COMMENT ON FUNCTION processes.f_add_parallel_activity_to_step_existing_next(p_pr
 CREATE OR REPLACE FUNCTION processes.f_add_parallel_activity_to_option(p_process_id processes.Step.process_id%TYPE,
                                                                        p_option_id processes.Option.option_id%TYPE,
                                                                        p_description processes.Step.description%TYPE)
-    RETURNS VOID AS $$
+    RETURNS processes.Step.step_id%TYPE AS $$
 WITH add_step AS (INSERT INTO processes.Step (process_id, description)
     VALUES (p_process_id, p_description) RETURNING step_id),
      add_parallel_activity
@@ -357,7 +358,7 @@ CREATE OR REPLACE FUNCTION processes.f_add_parallel_activity_to_option_existing_
                                                                                      p_option_id processes.Option.option_id%TYPE,
                                                                                      p_next_step_id processes.Step.next_step_id%TYPE,
                                                                                      p_description processes.Step.description%TYPE)
-    RETURNS VOID AS $$
+    RETURNS processes.Step.step_id%TYPE AS $$
 WITH add_step AS (INSERT INTO processes.Step (process_id, next_step_id, description)
     VALUES (p_process_id, p_next_step_id, p_description) RETURNING step_id),
      add_parallel_activity
@@ -380,7 +381,7 @@ COMMENT ON FUNCTION processes.f_add_parallel_activity_to_option_existing_next(p_
 CREATE OR REPLACE FUNCTION processes.f_add_action_in_parallel_activity(p_process_id processes.Step.process_id%TYPE,
                                                                        p_parallel_activity_id processes.Parallel_activity.parallel_activity_id%TYPE,
                                                                        p_description processes.Step.description%TYPE)
-    RETURNS VOID AS $$
+    RETURNS processes.Step.step_id%TYPE AS $$
 WITH add_step AS (INSERT INTO processes.Step (process_id, description)
     VALUES (p_process_id, p_description) RETURNING step_id),
      add_action AS (INSERT INTO processes.Action (action_id) SELECT step_id FROM add_step),
@@ -400,7 +401,7 @@ COMMENT ON FUNCTION processes.f_add_action_in_parallel_activity(p_process_id pro
 
 CREATE OR REPLACE FUNCTION processes.f_add_first_decision(p_process_id processes.Step.process_id%TYPE,
                                                           p_description processes.Step.description%TYPE)
-    RETURNS VOID AS $$
+    RETURNS processes.Step.step_id%TYPE AS $$
 WITH add_step AS (INSERT INTO processes.Step (process_id, description)
     VALUES (p_process_id, p_description) RETURNING step_id),
      add_decision AS (INSERT INTO processes.Decision (decision_id) SELECT step_id FROM add_step),
@@ -420,7 +421,7 @@ COMMENT ON FUNCTION processes.f_add_first_decision(p_process_id processes.Step.p
 CREATE OR REPLACE FUNCTION processes.f_add_decision_to_step(p_process_id processes.Step.process_id%TYPE,
                                                             p_previous_step_id processes.Step.next_step_id%TYPE,
                                                             p_description processes.Step.description%TYPE)
-    RETURNS VOID AS $$
+    RETURNS processes.Step.step_id%TYPE AS $$
 WITH add_step AS (INSERT INTO processes.Step (process_id, description)
     VALUES (p_process_id, p_description) RETURNING step_id),
      add_decision AS (INSERT INTO processes.Decision (decision_id) SELECT step_id FROM add_step),
@@ -442,7 +443,7 @@ CREATE OR REPLACE FUNCTION processes.f_add_decision_to_step_existing_next(p_proc
                                                                           p_previous_step_id processes.Step.next_step_id%TYPE,
                                                                           p_next_step_id processes.Step.next_step_id%TYPE,
                                                                           p_description processes.Step.description%TYPE)
-    RETURNS VOID AS $$
+    RETURNS processes.Step.step_id%TYPE AS $$
 WITH add_step AS (INSERT INTO processes.Step (process_id, next_step_id, description)
     VALUES (p_process_id, p_next_step_id, p_description) RETURNING step_id),
      add_decision AS (INSERT INTO processes.Decision (decision_id) SELECT step_id FROM add_step),
@@ -464,7 +465,7 @@ COMMENT ON FUNCTION processes.f_add_decision_to_step_existing_next(p_process_id 
 CREATE OR REPLACE FUNCTION processes.f_add_decision_to_option(p_process_id processes.Step.process_id%TYPE,
                                                               p_option_id processes.Option.option_id%TYPE,
                                                               p_description processes.Step.description%TYPE)
-    RETURNS VOID AS $$
+    RETURNS processes.Step.step_id%TYPE AS $$
 WITH add_step AS (INSERT INTO processes.Step (process_id, description)
     VALUES (p_process_id, p_description) RETURNING step_id),
      add_decision AS (INSERT INTO processes.Decision (decision_id) SELECT step_id FROM add_step),
@@ -486,7 +487,7 @@ CREATE OR REPLACE FUNCTION processes.f_add_decision_to_option_existing_next(p_pr
                                                                             p_option_id processes.Option.option_id%TYPE,
                                                                             p_next_step_id processes.Step.next_step_id%TYPE,
                                                                             p_description processes.Step.description%TYPE)
-    RETURNS VOID AS $$
+    RETURNS processes.Step.step_id%TYPE AS $$
 WITH add_step AS (INSERT INTO processes.Step (process_id, next_step_id, description)
     VALUES (p_process_id, p_next_step_id, p_description) RETURNING step_id),
      add_decision AS (INSERT INTO processes.Decision (decision_id) SELECT step_id FROM add_step),
@@ -508,9 +509,10 @@ COMMENT ON FUNCTION processes.f_add_decision_to_option_existing_next(p_process_i
 CREATE OR REPLACE FUNCTION processes.f_add_option_to_decision(p_decision_id processes.Option.decision_id%TYPE,
                                                               p_weight processes.Option.weight%TYPE,
                                                               p_guard processes.Option.guard%TYPE)
-    RETURNS VOID AS $$
+    RETURNS processes.Option.option_id%TYPE AS $$
 INSERT INTO processes.Option(decision_id, weight, guard)
-SELECT p_decision_id, p_weight, p_guard;
+SELECT p_decision_id, p_weight, p_guard
+RETURNING option_id;
 $$ LANGUAGE sql SECURITY DEFINER
                 SET search_path = processes, public, pg_temp;
 
@@ -525,9 +527,10 @@ CREATE OR REPLACE FUNCTION processes.f_add_option_to_decision_existing_next(p_de
                                                                             p_next_step_id processes.Step.next_step_id%TYPE,
                                                                             p_weight processes.Option.weight%TYPE,
                                                                             p_guard processes.Option.guard%TYPE)
-    RETURNS VOID AS $$
+    RETURNS processes.Option.option_id%TYPE AS $$
 INSERT INTO processes.Option(decision_id, next_step_id, weight, guard)
-SELECT p_decision_id, p_next_step_id, p_weight, p_guard;
+SELECT p_decision_id, p_next_step_id, p_weight, p_guard
+RETURNING option_id;
 $$ LANGUAGE sql SECURITY DEFINER
                 SET search_path = processes, public, pg_temp;
 
@@ -664,9 +667,10 @@ COMMENT ON FUNCTION processes.f_remove_step_link(p_process_link_id processes.Pro
 
 CREATE OR REPLACE FUNCTION processes.f_add_decision_table(p_action_id processes.Decision_table.action_id%TYPE,
                                                           p_name processes.Decision_table.name%TYPE)
-    RETURNS VOID AS $$
+    RETURNS processes.decision_table.decision_table_id%TYPE AS $$
 INSERT INTO processes.Decision_table(action_id, name)
-SELECT p_action_id, p_name;
+SELECT p_action_id, p_name
+RETURNING decision_table_id;
 $$ LANGUAGE sql SECURITY DEFINER
                 SET search_path = processes, public, pg_temp;
 
