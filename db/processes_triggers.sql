@@ -169,7 +169,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER
                     SET search_path = processes, public, pg_temp;
 
-COMMENT ON FUNCTION processes.f_activate_process_decision_less_than_2_options() IS 'This function ensures that only processes where every decision parallel activity has at least 2 associated actions can be activated.';
+COMMENT ON FUNCTION processes.f_activate_process_parallel_activity_less_than_2_actions() IS 'This function ensures that only processes where every decision parallel activity has at least 2 associated actions can be activated.';
 
 CREATE TRIGGER trig_activate_process_parallel_activity_less_than_2_actions
     BEFORE UPDATE OF process_status_type_code
