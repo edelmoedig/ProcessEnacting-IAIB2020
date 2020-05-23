@@ -10,7 +10,7 @@ REVOKE CREATE, USAGE ON SCHEMA processes FROM PUBLIC;
 REVOKE USAGE ON LANGUAGE plpgsql FROM PUBLIC;
 
 REVOKE EXECUTE ON ROUTINE processes.f_activate_process(p_process_id integer) FROM PUBLIC;
-REVOKE EXECUTE ON ROUTINE processes.f_get_administrator_id(p_email character varying, p_password character varying) FROM PUBLIC;
+REVOKE EXECUTE ON ROUTINE processes.f_login_get_administrator_id(p_email character varying, p_password character varying) FROM PUBLIC;
 REVOKE EXECUTE ON ROUTINE processes.f_access_process_with_password(p_process_id integer, p_password character varying) FROM PUBLIC;
 REVOKE EXECUTE ON ROUTINE processes.f_add_action_in_parallel_activity(p_process_id integer, p_parallel_activity_id integer, p_description text) FROM PUBLIC;
 REVOKE EXECUTE ON ROUTINE processes.f_add_action_to_option(p_process_id integer, p_option_id integer, p_description text) FROM PUBLIC;
@@ -35,7 +35,7 @@ REVOKE EXECUTE ON ROUTINE processes.f_add_parallel_activity_to_step_existing_nex
 REVOKE EXECUTE ON ROUTINE processes.f_add_process_link(p_process_id integer, p_url character varying, p_name character varying, p_priority_nr smallint) FROM PUBLIC;
 REVOKE EXECUTE ON ROUTINE processes.f_add_step_link(p_step_id integer, p_url character varying, p_name character varying, p_priority_nr smallint) FROM PUBLIC;
 REVOKE EXECUTE ON ROUTINE processes.f_change_decision_table_entry(p_decision_table_entry_id integer, p_condition text, p_action text, p_seq_nr smallint) FROM PUBLIC;
-REVOKE EXECUTE ON ROUTINE processes.f_change_name_and_description(p_process_id integer, p_name character varying, p_description text) FROM PUBLIC;
+REVOKE EXECUTE ON ROUTINE processes.f_change_process_name_and_description(p_process_id integer, p_name character varying, p_description text) FROM PUBLIC;
 REVOKE EXECUTE ON ROUTINE processes.f_change_option_weight_and_guard(p_option_id integer, p_guard text, p_weight numeric) FROM PUBLIC;
 REVOKE EXECUTE ON ROUTINE processes.f_change_process_password(p_process_id integer, p_password character varying) FROM PUBLIC;
 REVOKE EXECUTE ON ROUTINE processes.f_change_step_description(p_step_id integer, p_description text) FROM PUBLIC;
@@ -93,7 +93,7 @@ GRANT EXECUTE ON ROUTINE processes.f_add_parallel_activity_to_step_existing_next
 GRANT EXECUTE ON ROUTINE processes.f_add_process_link(p_process_id integer, p_url character varying, p_name character varying, p_priority_nr smallint) TO process_administrator;
 GRANT EXECUTE ON ROUTINE processes.f_add_step_link(p_step_id integer, p_url character varying, p_name character varying, p_priority_nr smallint) TO process_administrator;
 GRANT EXECUTE ON ROUTINE processes.f_change_decision_table_entry(p_decision_table_entry_id integer, p_condition text, p_action text, p_seq_nr smallint) TO process_administrator;
-GRANT EXECUTE ON ROUTINE processes.f_change_name_and_description(p_process_id integer, p_name character varying, p_description text) TO process_administrator;
+GRANT EXECUTE ON ROUTINE processes.f_change_process_name_and_description(p_process_id integer, p_name character varying, p_description text) TO process_administrator;
 GRANT EXECUTE ON ROUTINE processes.f_change_option_weight_and_guard(p_option_id integer, p_guard text, p_weight numeric) TO process_administrator;
 GRANT EXECUTE ON ROUTINE processes.f_change_process_password(p_process_id integer, p_password character varying) TO process_administrator;
 GRANT EXECUTE ON ROUTINE processes.f_change_step_description(p_step_id integer, p_description text) TO process_administrator;
