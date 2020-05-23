@@ -115,7 +115,7 @@ DECLARE
 BEGIN
     LOCK TABLE processes.Process, processes.Option, processes.Decision, processes.Step IN ACCESS EXCLUSIVE MODE;
     v_count := (SELECT Count(*)
-                FROM (SELECT Decision.decision_id, count(*)
+                FROM (SELECT Decision.decision_id, count(option_id)
                       FROM processes.Decision
                                INNER JOIN processes.Step ON decision_id = step_id
                                LEFT JOIN processes.Option
@@ -151,7 +151,7 @@ DECLARE
 BEGIN
     LOCK TABLE processes.Process, processes.Action_in_parallel_activity, processes.Parallel_activity, processes.Step IN ACCESS EXCLUSIVE MODE;
     v_count := (SELECT Count(*)
-                FROM (SELECT Parallel_activity.parallel_activity_id, count(*)
+                FROM (SELECT Parallel_activity.parallel_activity_id, count(action_id)
                       FROM processes.Parallel_activity
                                INNER JOIN processes.Step ON parallel_activity_id = step_id
                                LEFT JOIN processes.Action_in_parallel_activity
