@@ -9,6 +9,9 @@ if (isset($_GET['search'])) {
 } else {
     $processes = (new Process)->getAllActiveProcesses();
 }
+
+unset($_SESSION['currentPr']);
+unset($_SESSION['currentUsage']);
 ?>
 
 <html lang="en">

@@ -89,4 +89,18 @@ class Process {
         $links = $stmt->fetchAll();
         return $links;
     }
+
+    public function logProcessUsage($process_id) {
+        $stmt = $this->conn->prepare("SELECT processes.f_log_process_usage(?)");
+        $stmt->execute([$process_id]);
+        $processUsage = $stmt->fetch();
+        return $processUsage;
+    }
+
+    public function logStepClick($process_usage_id, $step_id) {
+        $stmt = $this->conn->prepare("SELECT processes.f_log_step_click(?, ?)");
+        $stmt->execute([$process_usage_id, $step_id]);
+        $stepClick = $stmt->fetch();
+        return $stepClick;
+    }
 }

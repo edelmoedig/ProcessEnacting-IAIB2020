@@ -818,9 +818,9 @@ COMMENT ON FUNCTION processes.f_change_decision_table_entry(p_decision_table_ent
 -- Log
 
 CREATE OR REPLACE FUNCTION processes.f_log_process_usage(p_process_id processes.Process_usage.process_id%TYPE)
-    RETURNS VOID AS $$
+    RETURNS processes.Process_usage.process_usage_id%TYPE AS $$
 INSERT INTO processes.Process_usage(process_id)
-SELECT p_process_id;
+SELECT p_process_id RETURNING process_usage_id;
 $$ LANGUAGE sql SECURITY DEFINER
                 SET search_path = processes, public, pg_temp;
 

@@ -14,6 +14,15 @@ if ($_GET['pr'] != $step['process_id'] or empty($pr)) {
     exit;
 }
 
+if (empty($_SESSION['currentPr']) or empty($_SESSION['currentUsage']) or $_SESSION['currentPr'] != $_GET['pr']) {
+    $_SESSION['currentPr'] = $_GET['pr'];
+    $processUsage = $process->logProcessUsage($_SESSION['currentPr'])[0];
+    $_SESSION['currentUsage'] = $processUsage;
+    $process->logStepClick($_SESSION['currentUsage'], $_GET['step']);
+} else {
+    $process->logStepClick($_SESSION['currentUsage'], $_GET['step']);
+}
+
 $decisionOptions = array();
 $parallelActions = array();
 
