@@ -635,6 +635,27 @@ COMMENT ON FUNCTION processes.f_remove_process_link(p_process_link_id processes.
 
 
 
+CREATE OR REPLACE FUNCTION processes.f_edit_process_link(p_process_link_id processes.Process_link.process_link_id%TYPE,
+                                                         p_url processes.Process_link.url%TYPE,
+                                                         p_name processes.Process_link.url%TYPE,
+                                                         p_priority_nr processes.Process_link.priority_nr%TYPE)
+    RETURNS VOID AS $$
+UPDATE processes.Process_link
+SET url         = p_url,
+    name        = p_name,
+    priority_nr = p_priority_nr
+WHERE process_link_id = p_process_link_id;
+$$ LANGUAGE sql SECURITY DEFINER
+                SET search_path = processes, public, pg_temp;
+
+COMMENT ON FUNCTION processes.f_edit_process_link(p_process_link_id processes.Process_link.process_link_id%TYPE,
+    p_url processes.Process_link.url%TYPE,
+    p_name processes.Process_link.url%TYPE,
+    p_priority_nr processes.Process_link.priority_nr%TYPE)
+    IS 'This function allows editing of existing process links';
+
+
+
 CREATE OR REPLACE FUNCTION processes.f_add_step_link(p_step_id processes.Step_link.step_id%TYPE,
                                                      p_url processes.Step_link.url%TYPE,
                                                      p_name processes.Step_link.name%TYPE,
@@ -663,6 +684,27 @@ $$ LANGUAGE sql SECURITY DEFINER
 
 COMMENT ON FUNCTION processes.f_remove_step_link(p_process_link_id processes.Process_link.process_link_id%TYPE)
     IS 'This function is used to remove an associated link from an existing step.';
+
+
+
+CREATE OR REPLACE FUNCTION processes.f_edit_step_link(p_step_link_id processes.Step_link.step_link_id%TYPE,
+                                                      p_url processes.Step_link.url%TYPE,
+                                                      p_name processes.Step_link.url%TYPE,
+                                                      p_priority_nr processes.Step_link.priority_nr%TYPE)
+    RETURNS VOID AS $$
+UPDATE processes.Step_link
+SET url         = p_url,
+    name        = p_name,
+    priority_nr = p_priority_nr
+WHERE step_link_id = p_step_link_id;
+$$ LANGUAGE sql SECURITY DEFINER
+                SET search_path = processes, public, pg_temp;
+
+COMMENT ON FUNCTION processes.f_edit_step_link(p_step_link_id processes.Step_link.step_link_id%TYPE,
+    p_url processes.Step_link.url%TYPE,
+    p_name processes.Step_link.url%TYPE,
+    p_priority_nr processes.Step_link.priority_nr%TYPE)
+    IS 'This function allows editing of existing step links';
 
 
 -- Decision tables

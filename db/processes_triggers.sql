@@ -637,12 +637,19 @@ EXECUTE FUNCTION processes.f_remove_process_link();
 
 CREATE OR REPLACE FUNCTION processes.f_edit_process_link() RETURNS trigger AS $$
 BEGIN
-    RAISE EXCEPTION 'Project links cannot be edited but can be removed and recreated again.';
+    IF ((SELECT Process.process_status_type_code
+         FROM processes.Process
+         WHERE Process.process_id = OLD.process_id FOR UPDATE) NOT IN
+        (1, 3)) THEN
+        RAISE EXCEPTION 'Project links associated with active and ended processes cannot be edited.';
+    ELSE
+        RETURN NEW;
+    END IF;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER
                     SET search_path = processes, public, pg_temp;
 
-COMMENT ON FUNCTION processes.f_edit_process_link() IS 'This function prevents editing existing process links.';
+COMMENT ON FUNCTION processes.f_edit_process_link() IS 'This function prevents editing existing process links of active and ended processes.';
 
 CREATE TRIGGER trig_edit_process_link
     BEFORE UPDATE
@@ -702,12 +709,19 @@ EXECUTE FUNCTION processes.f_remove_step_link();
 
 CREATE OR REPLACE FUNCTION processes.f_edit_step_link() RETURNS trigger AS $$
 BEGIN
-    RAISE EXCEPTION 'Step links cannot be edited but can be removed and recreated again.';
+    IF ((SELECT Process.process_status_type_code
+         FROM processes.Process
+                  INNER JOIN Step ON Process.process_id = Step.process_id
+         WHERE Step.step_id = NEW.step_id FOR UPDATE) NOT IN (1, 3)) THEN
+        RAISE EXCEPTION 'Step links associated with active and ended processes cannot be edited.';
+    ELSE
+        RETURN NEW;
+    END IF;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER
                     SET search_path = processes, public, pg_temp;
 
-COMMENT ON FUNCTION processes.f_edit_step_link() IS 'This function prevents editing existing step links.';
+COMMENT ON FUNCTION processes.f_edit_step_link() IS 'This function prevents editing existing step links of active and ended processes.';
 
 CREATE TRIGGER trig_edit_step_link
     BEFORE UPDATE
