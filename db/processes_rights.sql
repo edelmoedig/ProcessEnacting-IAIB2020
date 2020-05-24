@@ -54,6 +54,8 @@ REVOKE EXECUTE ON ROUTINE processes.f_remove_step(p_step_id integer) FROM PUBLIC
 REVOKE EXECUTE ON ROUTINE processes.f_remove_step_link(p_step_link_id integer) FROM PUBLIC;
 REVOKE EXECUTE ON ROUTINE processes.f_switch_activation_decision_table(p_decision_table_id integer) FROM PUBLIC;
 REVOKE EXECUTE ON ROUTINE processes.f_change_decision_table_name(p_decision_table_id integer, p_name character varying) FROM PUBLIC;
+REVOKE EXECUTE ON ROUTINE processes.f_edit_process_link(p_process_link_id integer, p_url character varying, p_name character varying, p_priority_nr smallint) FROM PUBLIC;
+REVOKE EXECUTE ON ROUTINE processes.f_edit_step_link(p_step_link_id integer, p_url character varying, p_name character varying, p_priority_nr smallint) FROM PUBLIC;
 
 REVOKE EXECUTE ON ALL FUNCTIONS IN SCHEMA processes FROM PUBLIC;
 
@@ -113,6 +115,9 @@ GRANT EXECUTE ON ROUTINE processes.f_remove_step(p_step_id integer) TO process_a
 GRANT EXECUTE ON ROUTINE processes.f_remove_step_link(p_step_link_id integer) TO process_administrator;
 GRANT EXECUTE ON ROUTINE processes.f_switch_activation_decision_table(p_decision_table_id integer) TO process_administrator;
 GRANT EXECUTE ON ROUTINE processes.f_change_decision_table_name(p_decision_table_id integer, p_name character varying) TO process_administrator;
+GRANT EXECUTE ON ROUTINE processes.f_edit_process_link(p_process_link_id integer, p_url character varying, p_name character varying, p_priority_nr smallint) TO process_administrator;
+GRANT EXECUTE ON ROUTINE processes.f_edit_step_link(p_step_link_id integer, p_url character varying, p_name character varying, p_priority_nr smallint) TO process_administrator;
+
 
 
 GRANT EXECUTE ON ROUTINE processes.f_register_administrator(p_email character varying, p_password character varying, p_given_name character varying, p_surname character varying) TO process_administrator;

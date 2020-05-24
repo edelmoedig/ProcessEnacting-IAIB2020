@@ -593,7 +593,7 @@ BEGIN
          FROM processes.Process
          WHERE Process.process_id = NEW.process_id FOR UPDATE) NOT IN
         (1, 3)) THEN
-        RAISE EXCEPTION 'New project links cannot be added to active and ended processes.';
+        RAISE EXCEPTION 'New process links cannot be added to active and ended processes.';
     ELSE
         RETURN NEW;
     END IF;
@@ -617,7 +617,7 @@ BEGIN
          FROM processes.Process
          WHERE Process.process_id = OLD.process_id FOR UPDATE) NOT IN
         (1, 3)) THEN
-        RAISE EXCEPTION 'Project links cannot be removed from active and ended processes.';
+        RAISE EXCEPTION 'Process links cannot be removed from active and ended processes.';
     ELSE
         RETURN OLD;
     END IF;
@@ -641,7 +641,7 @@ BEGIN
          FROM processes.Process
          WHERE Process.process_id = OLD.process_id FOR UPDATE) NOT IN
         (1, 3)) THEN
-        RAISE EXCEPTION 'Project links associated with active and ended processes cannot be edited.';
+        RAISE EXCEPTION 'Process links associated with active and ended processes cannot be edited.';
     ELSE
         RETURN NEW;
     END IF;
