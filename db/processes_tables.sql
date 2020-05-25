@@ -21,6 +21,8 @@ DROP TABLE IF EXISTS processes.Option CASCADE;
 CREATE DOMAIN processes.d_time AS
     timestamp NOT NULL DEFAULT LOCALTIMESTAMP(0) CONSTRAINT CHK_d_time_from_2020_to_2200 CHECK (VALUE >= '2020-01-01' AND VALUE < '2201-01-01');
 
+CREATE DOMAIN processes.d_url AS varchar(2000) NOT NULL CONSTRAINT CHK_d_url_valid CHECK (VALUE ~* '^http[s]{0,1}://.*[.].*');
+
 
 /* Create Tables */
 
@@ -146,14 +148,13 @@ CREATE TABLE processes.Process_link
 (
     process_link_id serial        NOT NULL,
     process_id      integer       NOT NULL,
-    url             varchar(2000) NOT NULL,
+    url             processes.d_url,
     name            varchar(1000) NULL,
     priority_nr     smallint      NOT NULL,
     reg_time        processes.d_time,
     CONSTRAINT PK_Process_link PRIMARY KEY (process_link_id),
     CONSTRAINT AK_Process_link_priority UNIQUE (process_id, priority_nr),
     CONSTRAINT AK_Process_link_url UNIQUE (url, process_id),
-    CONSTRAINT CHK_Process_link_url_not_only_whitespace CHECK (url !~ '^[[:space:]]*$'),
     CONSTRAINT CHK_Process_link_name_not_only_whitespace CHECK (name !~ '^[[:space:]]*$'),
     CONSTRAINT FK_Process_link_Process FOREIGN KEY (process_id) REFERENCES processes.Process (process_id) ON DELETE CASCADE ON UPDATE NO ACTION
 ) WITH (FILLFACTOR = 90);
@@ -162,14 +163,13 @@ CREATE TABLE processes.Step_link
 (
     step_link_id serial        NOT NULL,
     step_id      integer       NOT NULL,
-    url          varchar(2000) NOT NULL,
+    url          processes.d_url,
     name         varchar(1000) NULL,
     priority_nr  smallint      NOT NULL,
     reg_time     processes.d_time,
     CONSTRAINT PK_Step_link PRIMARY KEY (step_link_id),
     CONSTRAINT AK_Step_link_priority UNIQUE (step_id, priority_nr),
     CONSTRAINT AK_Step_link_url UNIQUE (url, step_id),
-    CONSTRAINT CHK_Step_link_url_not_only_whitespace CHECK (url !~ '^[[:space:]]*$'),
     CONSTRAINT CHK_Step_link_name_not_only_whitespace CHECK (name !~ '^[[:space:]]*$'),
     CONSTRAINT FK_Step_link_Step FOREIGN KEY (step_id) REFERENCES processes.Step (step_id) ON DELETE CASCADE ON UPDATE NO ACTION
 ) WITH (FILLFACTOR = 90);
