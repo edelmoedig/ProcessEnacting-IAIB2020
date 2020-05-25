@@ -32,8 +32,8 @@ REVOKE EXECUTE ON ROUTINE processes.f_add_parallel_activity_to_option(p_process_
 REVOKE EXECUTE ON ROUTINE processes.f_add_parallel_activity_to_option_existing_next(p_process_id integer, p_option_id integer, p_next_step_id integer, p_description text) FROM PUBLIC;
 REVOKE EXECUTE ON ROUTINE processes.f_add_parallel_activity_to_step(p_process_id integer, p_previous_step_id integer, p_description text) FROM PUBLIC;
 REVOKE EXECUTE ON ROUTINE processes.f_add_parallel_activity_to_step_existing_next(p_process_id integer, p_previous_step_id integer, p_next_step_id integer, p_description text) FROM PUBLIC;
-REVOKE EXECUTE ON ROUTINE processes.f_add_process_link(p_process_id integer, p_url character varying, p_name character varying, p_priority_nr smallint) FROM PUBLIC;
-REVOKE EXECUTE ON ROUTINE processes.f_add_step_link(p_step_id integer, p_url character varying, p_name character varying, p_priority_nr smallint) FROM PUBLIC;
+REVOKE EXECUTE ON ROUTINE processes.f_add_process_link(p_process_id integer, p_url processes.Process_link.url%TYPE, p_name character varying, p_priority_nr smallint) FROM PUBLIC;
+REVOKE EXECUTE ON ROUTINE processes.f_add_step_link(p_step_id integer, p_url processes.Step_link.url%TYPE, p_name character varying, p_priority_nr smallint) FROM PUBLIC;
 REVOKE EXECUTE ON ROUTINE processes.f_change_decision_table_entry(p_decision_table_entry_id integer, p_condition text, p_action text, p_seq_nr smallint) FROM PUBLIC;
 REVOKE EXECUTE ON ROUTINE processes.f_change_process_name_and_description(p_process_id integer, p_name character varying, p_description text) FROM PUBLIC;
 REVOKE EXECUTE ON ROUTINE processes.f_change_option_weight_and_guard(p_option_id integer, p_guard text, p_weight numeric) FROM PUBLIC;
@@ -54,8 +54,8 @@ REVOKE EXECUTE ON ROUTINE processes.f_remove_step(p_step_id integer) FROM PUBLIC
 REVOKE EXECUTE ON ROUTINE processes.f_remove_step_link(p_step_link_id integer) FROM PUBLIC;
 REVOKE EXECUTE ON ROUTINE processes.f_switch_activation_decision_table(p_decision_table_id integer) FROM PUBLIC;
 REVOKE EXECUTE ON ROUTINE processes.f_change_decision_table_name(p_decision_table_id integer, p_name character varying) FROM PUBLIC;
-REVOKE EXECUTE ON ROUTINE processes.f_edit_process_link(p_process_link_id integer, p_url character varying, p_name character varying, p_priority_nr smallint) FROM PUBLIC;
-REVOKE EXECUTE ON ROUTINE processes.f_edit_step_link(p_step_link_id integer, p_url character varying, p_name character varying, p_priority_nr smallint) FROM PUBLIC;
+REVOKE EXECUTE ON ROUTINE processes.f_edit_process_link(p_process_link_id integer, p_url processes.Process_link.url%TYPE, p_name character varying, p_priority_nr smallint) FROM PUBLIC;
+REVOKE EXECUTE ON ROUTINE processes.f_edit_step_link(p_step_link_id integer, p_url processes.Step_link.url%TYPE, p_name character varying, p_priority_nr smallint) FROM PUBLIC;
 REVOKE EXECUTE ON ROUTINE processes.f_change_step_next_step(p_current_step_id processes.Step.step_id%TYPE, p_next_step_id processes.Step.step_id%TYPE) FROM PUBLIC;
 REVOKE EXECUTE ON ROUTINE processes.f_change_option_next_step(p_current_option_id processes.Option.option_id%TYPE, p_next_step_id processes.Step.step_id%TYPE) FROM PUBLIC;
 
@@ -95,8 +95,8 @@ GRANT EXECUTE ON ROUTINE processes.f_add_parallel_activity_to_option(p_process_i
 GRANT EXECUTE ON ROUTINE processes.f_add_parallel_activity_to_option_existing_next(p_process_id integer, p_option_id integer, p_next_step_id integer, p_description text) TO process_administrator;
 GRANT EXECUTE ON ROUTINE processes.f_add_parallel_activity_to_step(p_process_id integer, p_previous_step_id integer, p_description text) TO process_administrator;
 GRANT EXECUTE ON ROUTINE processes.f_add_parallel_activity_to_step_existing_next(p_process_id integer, p_previous_step_id integer, p_next_step_id integer, p_description text) TO process_administrator;
-GRANT EXECUTE ON ROUTINE processes.f_add_process_link(p_process_id integer, p_url character varying, p_name character varying, p_priority_nr smallint) TO process_administrator;
-GRANT EXECUTE ON ROUTINE processes.f_add_step_link(p_step_id integer, p_url character varying, p_name character varying, p_priority_nr smallint) TO process_administrator;
+GRANT EXECUTE ON ROUTINE processes.f_add_process_link(p_process_id integer, p_url processes.Process_link.url%TYPE, p_name character varying, p_priority_nr smallint) TO process_administrator;
+GRANT EXECUTE ON ROUTINE processes.f_add_step_link(p_step_id integer, p_url processes.Step_link.url%TYPE, p_name character varying, p_priority_nr smallint) TO process_administrator;
 GRANT EXECUTE ON ROUTINE processes.f_change_decision_table_entry(p_decision_table_entry_id integer, p_condition text, p_action text, p_seq_nr smallint) TO process_administrator;
 GRANT EXECUTE ON ROUTINE processes.f_change_process_name_and_description(p_process_id integer, p_name character varying, p_description text) TO process_administrator;
 GRANT EXECUTE ON ROUTINE processes.f_change_option_weight_and_guard(p_option_id integer, p_guard text, p_weight numeric) TO process_administrator;
@@ -117,8 +117,8 @@ GRANT EXECUTE ON ROUTINE processes.f_remove_step(p_step_id integer) TO process_a
 GRANT EXECUTE ON ROUTINE processes.f_remove_step_link(p_step_link_id integer) TO process_administrator;
 GRANT EXECUTE ON ROUTINE processes.f_switch_activation_decision_table(p_decision_table_id integer) TO process_administrator;
 GRANT EXECUTE ON ROUTINE processes.f_change_decision_table_name(p_decision_table_id integer, p_name character varying) TO process_administrator;
-GRANT EXECUTE ON ROUTINE processes.f_edit_process_link(p_process_link_id integer, p_url character varying, p_name character varying, p_priority_nr smallint) TO process_administrator;
-GRANT EXECUTE ON ROUTINE processes.f_edit_step_link(p_step_link_id integer, p_url character varying, p_name character varying, p_priority_nr smallint) TO process_administrator;
+GRANT EXECUTE ON ROUTINE processes.f_edit_process_link(p_process_link_id integer, p_url processes.Process_link.url%TYPE, p_name character varying, p_priority_nr smallint) TO process_administrator;
+GRANT EXECUTE ON ROUTINE processes.f_edit_step_link(p_step_link_id integer, p_url processes.Step_link.url%TYPE, p_name character varying, p_priority_nr smallint) TO process_administrator;
 GRANT EXECUTE ON ROUTINE processes.f_change_step_next_step(p_current_step_id processes.Step.step_id%TYPE, p_next_step_id processes.Step.step_id%TYPE) TO process_administrator;
 GRANT EXECUTE ON ROUTINE processes.f_change_option_next_step(p_current_option_id processes.Option.option_id%TYPE, p_next_step_id processes.Step.step_id%TYPE) TO process_administrator;
 
