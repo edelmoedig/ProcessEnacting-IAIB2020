@@ -33,7 +33,6 @@ if (!empty($_POST["email"]) && !empty($_POST["password"]) && (!empty($_POST["giv
 <html lang="en">
 <head>
     <title>Register</title>
-    <link rel="stylesheet" type="text/css" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script>
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.4/dist/semantic.min.css">
     <script src="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.4/dist/semantic.min.js"></script>
