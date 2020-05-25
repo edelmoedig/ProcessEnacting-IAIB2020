@@ -588,6 +588,32 @@ COMMENT ON FUNCTION processes.f_remove_step(p_step_id processes.Step.step_id%TYP
 
 
 
+CREATE OR REPLACE FUNCTION processes.f_change_step_next_step(p_current_step_id processes.Step.step_id%TYPE, p_next_step_id processes.Step.step_id%TYPE)
+    RETURNS VOID AS $$
+UPDATE processes.Step
+SET next_step_id = p_next_step_id
+WHERE step_id = p_current_step_id;
+$$ LANGUAGE sql SECURITY DEFINER
+                SET search_path = processes, public, pg_temp;
+
+COMMENT ON FUNCTION processes.f_change_step_next_step(p_current_step_id processes.Step.step_id%TYPE, p_next_step_id processes.Step.step_id%TYPE)
+    IS 'This function can be used to set the next step of an existing step.';
+
+
+
+CREATE OR REPLACE FUNCTION processes.f_change_option_next_step(p_current_option_id processes.Option.option_id%TYPE, p_next_step_id processes.Step.step_id%TYPE)
+    RETURNS VOID AS $$
+UPDATE processes.Option
+SET next_step_id = p_next_step_id
+WHERE option_id = p_current_option_id;
+$$ LANGUAGE sql SECURITY DEFINER
+                SET search_path = processes, public, pg_temp;
+
+COMMENT ON FUNCTION processes.f_change_option_next_step(p_current_step_id processes.Step.step_id%TYPE, p_next_step_id processes.Step.step_id%TYPE)
+    IS 'This function can be used to set the next step of an existing option.';
+
+
+
 CREATE OR REPLACE FUNCTION processes.f_change_step_description(p_step_id processes.Step.step_id%TYPE,
                                                                p_description processes.Step.description%TYPE)
     RETURNS VOID AS $$

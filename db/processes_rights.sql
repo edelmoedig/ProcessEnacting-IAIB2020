@@ -56,6 +56,8 @@ REVOKE EXECUTE ON ROUTINE processes.f_switch_activation_decision_table(p_decisio
 REVOKE EXECUTE ON ROUTINE processes.f_change_decision_table_name(p_decision_table_id integer, p_name character varying) FROM PUBLIC;
 REVOKE EXECUTE ON ROUTINE processes.f_edit_process_link(p_process_link_id integer, p_url character varying, p_name character varying, p_priority_nr smallint) FROM PUBLIC;
 REVOKE EXECUTE ON ROUTINE processes.f_edit_step_link(p_step_link_id integer, p_url character varying, p_name character varying, p_priority_nr smallint) FROM PUBLIC;
+REVOKE EXECUTE ON ROUTINE processes.f_change_step_next_step(p_current_step_id processes.Step.step_id%TYPE, p_next_step_id processes.Step.step_id%TYPE) FROM PUBLIC;
+REVOKE EXECUTE ON ROUTINE processes.f_change_option_next_step(p_current_option_id processes.Option.option_id%TYPE, p_next_step_id processes.Step.step_id%TYPE) FROM PUBLIC;
 
 REVOKE EXECUTE ON ALL FUNCTIONS IN SCHEMA processes FROM PUBLIC;
 
@@ -117,6 +119,8 @@ GRANT EXECUTE ON ROUTINE processes.f_switch_activation_decision_table(p_decision
 GRANT EXECUTE ON ROUTINE processes.f_change_decision_table_name(p_decision_table_id integer, p_name character varying) TO process_administrator;
 GRANT EXECUTE ON ROUTINE processes.f_edit_process_link(p_process_link_id integer, p_url character varying, p_name character varying, p_priority_nr smallint) TO process_administrator;
 GRANT EXECUTE ON ROUTINE processes.f_edit_step_link(p_step_link_id integer, p_url character varying, p_name character varying, p_priority_nr smallint) TO process_administrator;
+GRANT EXECUTE ON ROUTINE processes.f_change_step_next_step(p_current_step_id processes.Step.step_id%TYPE, p_next_step_id processes.Step.step_id%TYPE) TO process_administrator;
+GRANT EXECUTE ON ROUTINE processes.f_change_option_next_step(p_current_option_id processes.Option.option_id%TYPE, p_next_step_id processes.Step.step_id%TYPE) TO process_administrator;
 
 
 
