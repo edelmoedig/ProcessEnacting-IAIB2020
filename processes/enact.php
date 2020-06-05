@@ -14,6 +14,12 @@ if ($_GET['pr'] != $step['process_id'] or empty($pr)) {
     exit;
 }
 
+if ($pr['has_password'] && !in_array($pr['process_id'], $_SESSION['accessedProcesses'])) {
+    $_SESSION['error'] = "Please enter the password to access this process {$pr['process_id']} {$_SESSION['accessedProcesses']}.";
+    header("Location: index.php?access={$pr['process_id']}");
+    exit;
+}
+
 if (empty($_SESSION['currentPr']) or empty($_SESSION['currentUsage']) or $_SESSION['currentPr'] != $_GET['pr']) {
     $_SESSION['currentPr'] = $_GET['pr'];
     $processUsage = $process->logProcessUsage($_SESSION['currentPr'])[0];

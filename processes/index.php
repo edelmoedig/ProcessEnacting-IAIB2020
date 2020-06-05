@@ -17,13 +17,16 @@ unset($_SESSION['currentUsage']);
 <html lang="en">
 <head>
     <title>Active processes</title>
+    <link rel="stylesheet" type="text/css" href="styling.css">
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script>
+    <script src="script.js"></script>
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.4/dist/semantic.min.css">
     <script src="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.4/dist/semantic.min.js"></script>
 </head>
 <body>
 <?php include "navigation.php"; ?>
 <?php include "search.php"; ?>
+<?php include "password_access.php"; ?>
 
 <?php
 if (isset($_SESSION['error'])) {
@@ -42,7 +45,6 @@ if (isset($_SESSION['success'])) {
                 <div class=\"header\">
                     Login success
                 </div>
-            </div>
     ";
     echo "<p>" . $_SESSION['success'] . "</p></div></div>";
     unset($_SESSION['success']);
@@ -52,19 +54,40 @@ if (isset($_SESSION['success'])) {
 <?php
 
 foreach ($processes as $pr) {
-    echo
-        "<div class='ui raised very padded text container segment'>
-            <h2 class='ui header'>{$pr['process_name']}</h2>
-            <p>{$pr['process_description']}</p>
-                <a href='enact.php?pr={$pr['process_id']}&step={$pr['first_step_id']}'>
-                    <div class='ui green inverted segment'>
-                    <i class=\"angle right icon\"></i>
-                        ENTER
-                    </div>
-                </a>
-                <br>
-                <p><small><i class=\"address card outline icon\"></i>{$pr['owner']}<i class=\"calendar alternate outline icon\"></i>{$pr['reg_time']}</small></p>
-        </div>";
+    if ($pr['has_password']) {
+        echo
+            "<div class='ui raised very padded text container segment'>
+                <h2 class='ui header'>{$pr['process_name']}</h2>
+                <p>{$pr['process_description']}</p>
+                    <a href='?access={$pr['process_id']}'>
+                        <div class='ui yellow inverted segment'>
+                        <i class=\"angle right icon\"></i>
+                            <i class=\"lock icon\"></i>ENTER WITH PASSWORD
+                        </div>
+                    </a>
+                    <p><small><i class=\"address card outline icon\"></i>{$pr['owner']}<i class=\"calendar alternate outline icon\"></i>{$pr['reg_time']}</small></p>
+            </div>";
+    }
+    else {
+        echo
+            "<div class='ui raised very padded text container segment'>
+                <h2 class='ui header'>{$pr['process_name']}</h2>
+                <p>{$pr['process_description']}</p>
+                    <a href='enact.php?pr={$pr['process_id']}&step={$pr['first_step_id']}'>
+                        <div class='ui green inverted segment'>
+                        <i class=\"angle right icon\"></i>
+                            ENTER
+                        </div>
+                    </a>
+                    <p><small><i class=\"address card outline icon\"></i>{$pr['owner']}<i class=\"calendar alternate outline icon\"></i>{$pr['reg_time']}</small></p>
+            </div>";
+    }
+}
+
+if (isset($_GET['access'])) {
+    echo "<script>
+    $('.ui.modal').modal('show');
+    </script>";
 }
 
 ?>

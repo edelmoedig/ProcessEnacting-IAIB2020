@@ -77,7 +77,7 @@ CREATE OR REPLACE FUNCTION processes.f_access_process_with_password(p_process_id
 DECLARE
     result boolean;
 BEGIN
-    SELECT INTO result (password = processes.crypt(p_password, processes.gen_salt('bf', 11)))
+    SELECT INTO result (password = processes.crypt(p_password, password))
     FROM processes.Process
     WHERE process_id = p_process_id;
     RETURN coalesce(result, FALSE);

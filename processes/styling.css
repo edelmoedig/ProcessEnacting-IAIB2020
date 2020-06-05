@@ -1,0 +1,10 @@
+a > .segment {
+    margin-bottom: 15px !important;
+}
+.green.inverted.segment:hover {
+    background-color: green !important;
+}
+
+.yellow.inverted.segment:hover {
+    background-color: rgb(210, 171, 37) !important;
+}

@@ -103,4 +103,11 @@ class Process {
         $stepClick = $stmt->fetch();
         return $stepClick;
     }
+
+    public function accessProcess($process_id, $process_password) {
+        $stmt = $this->conn->prepare("SELECT processes.f_access_process_with_password(?, ?)");
+        $stmt->execute([$process_id, $process_password]);
+        $result = $stmt->fetchColumn();
+        return $result;
+    }
 }
