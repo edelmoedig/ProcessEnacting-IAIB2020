@@ -26,6 +26,7 @@ $pr = $process->getProcess($_GET['pr']);
 <?php include "navigation.php"; ?>
 
 <?php include 'form_edit_process_name_desc.php'; ?>
+<?php include 'form_change_process_status.php'; ?>
 <?php include 'form_change_process_password.php'; ?>
 <?php include 'form_process_links.php'; ?>
 
