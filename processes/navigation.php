@@ -6,8 +6,8 @@
             </a>
             <?php
             if (isset($_SESSION['id'])) {
-                echo "<a class='item' href='logout.php'>
-                Logout</a>";
+                echo "<a class='item' href='logout.php'>Logout</a>
+                        <a class='item' href='overview.php'>Overview</a>";
             }
             if ($_SERVER['REQUEST_URI'] === '/processes/register.php' or $_SERVER['REQUEST_URI'] === '/processes/login.php') {
                 echo "

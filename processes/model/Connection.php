@@ -4,22 +4,22 @@ class Connection
 {
 
     private static $conn;
+    private $user;
+
+    function __construct($user='process_administrator')
+    {
+        $this->user = $user;
+    }
 
     public function connect()
     {
 
-        $params = parse_ini_file('./config.ini');
-
-        if (!$params) {
-            throw new Exception("Database config cannot be read.");
-        }
-
         $conStr = sprintf("pgsql:host=%s;port=%s;dbname=%s;user=%s;password=%s",
-            $params['host'],
-            $params['port'],
-            $params['database'],
-            $params['user'],
-            $params['password']);
+            'localhost',
+            '5432',
+            'processes',
+            $this->user,
+            'wasd1234');
 
         $pdo = new PDO($conStr);
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);

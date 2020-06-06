@@ -183,3 +183,6 @@ $decisionTables = $process->getDecisionTables($_GET['step']);
         </div>
     </div>
 </div>
+
+</body>
+</html>

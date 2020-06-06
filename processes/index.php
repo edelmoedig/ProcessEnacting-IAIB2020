@@ -17,15 +17,13 @@ unset($_SESSION['currentUsage']);
 <html lang="en">
 <head>
     <title>Active processes</title>
-    <link rel="stylesheet" type="text/css" href="styling.css">
+    <link rel="stylesheet" type="text/css" href="default.css">
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script>
-    <script src="script.js"></script>
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.4/dist/semantic.min.css">
     <script src="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.4/dist/semantic.min.js"></script>
 </head>
 <body>
 <?php include "navigation.php"; ?>
-<?php include "search.php"; ?>
 <?php include "password_access.php"; ?>
 
 <?php
@@ -51,6 +49,8 @@ if (isset($_SESSION['success'])) {
 }
 ?>
 
+<?php include "search.php"; ?>
+
 <?php
 
 foreach ($processes as $pr) {
@@ -60,7 +60,7 @@ foreach ($processes as $pr) {
                 <h2 class='ui header'>{$pr['process_name']}</h2>
                 <p>{$pr['process_description']}</p>
                     <a href='?access={$pr['process_id']}'>
-                        <div class='ui yellow inverted segment'>
+                        <div class='ui yellow inverted clickable segment'>
                         <i class=\"angle right icon\"></i>
                             <i class=\"lock icon\"></i>ENTER WITH PASSWORD
                         </div>
@@ -74,7 +74,7 @@ foreach ($processes as $pr) {
                 <h2 class='ui header'>{$pr['process_name']}</h2>
                 <p>{$pr['process_description']}</p>
                     <a href='enact.php?pr={$pr['process_id']}&step={$pr['first_step_id']}'>
-                        <div class='ui green inverted segment'>
+                        <div class='ui green inverted clickable segment'>
                         <i class=\"angle right icon\"></i>
                             ENTER
                         </div>
