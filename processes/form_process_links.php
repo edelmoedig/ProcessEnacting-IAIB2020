@@ -23,11 +23,26 @@ try {
 }
 
 echo "<div class='ui raised text container segment'>";
+echo "<h3>Process links</h3><form method='post' class='ui form'>";
+echo "
+      <div class='inline fields'>
+            <div class='six wide field'>
+                <input type='text' name='new-link-url' placeholder='URL (unique)' required>
+            </div>
+            <div class='six wide field'>
+                <input type='text' name='new-link-name' placeholder='Name' required>
+            </div>
+            <div class='three wide field'>
+                <input type='number' name='new-link-priority' placeholder='Priority (unique)' required>
+            </div>
+            <div class='field'>
+                <button name='add-link-btn' class='ui green button' type='submit'>Add</button>
+            </div>
+      </div>
+    ";
 if (empty($processLinks)) {
-    echo "<h3>There are no associated process links.</h3>";
+    echo "<p>There are no associated process links.</p>";
 } else {
-    $i = 0;
-    echo "<h3>Process links</h3><form method='post' class='ui form'>";
     foreach ($processLinks as $prL) {
         echo "
               <div class='inline fields'>
@@ -49,22 +64,6 @@ if (empty($processLinks)) {
               </div>
         ";
     }
-    echo "
-          <div class='inline fields'>
-                <div class='six wide field'>
-                    <input type='text' name='new-link-url' placeholder='URL (unique)' required>
-                </div>
-                <div class='six wide field'>
-                    <input type='text' name='new-link-name' placeholder='Name' required>
-                </div>
-                <div class='three wide field'>
-                    <input type='number' name='new-link-priority' placeholder='Priority (unique)' required>
-                </div>
-                <div class='field'>
-                    <button name='add-link-btn' class='ui green button' type='submit'>Add</button>
-                </div>
-          </div>
-        ";
 }
 
 echo "</div>";
