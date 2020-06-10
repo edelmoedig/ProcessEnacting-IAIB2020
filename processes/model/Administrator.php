@@ -20,7 +20,7 @@ class Administrator
 
     public function login($email, $password)
     {
-        $stmt = $this->conn->prepare("SELECT processes.f_get_administrator_id(?, ?)");
+        $stmt = $this->conn->prepare("SELECT processes.f_login_get_administrator_id(?, ?)");
         $stmt->execute([$email, $password]);
         return $stmt->fetch()[0];
     }
