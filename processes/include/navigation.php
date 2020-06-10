@@ -11,10 +11,10 @@
             }
             if ($_SERVER['REQUEST_URI'] === '/processes/register.php' or $_SERVER['REQUEST_URI'] === '/processes/login.php') {
                 echo "
-                    <a class='item' href='../register.php'>
+                    <a class='item' href='../processes/register.php'>
                         Register
                     </a>
-                    <a class='item' href='../login.php'>
+                    <a class='item' href='../processes/login.php'>
                         Login
                     </a>";
             }
