@@ -56,17 +56,19 @@ $decisionTables = $process->getDecisionTables($_GET['step']);
 <html lang="en">
 <head>
     <title>Active processes</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="default.css">
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script>
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.4/dist/semantic.min.css">
     <script src="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.4/dist/semantic.min.js"></script>
 </head>
 <body>
-<?php include "navigation.php"; ?>
+<?php include "include/navigation.php"; ?>
 
 <div class="ui grid container">
     <div class="two wide column">
         <?php echo
-        "<i class=\"angle double left icon\"></i><h3><span title='Go back to the first step'><a href='enact.php?pr={$pr['process_id']}&step={$pr['first_step_id']}'>{$pr['process_name']}</span></h3></a>" ?>
+        "<i class='angle double left icon'></i><h3><span title='Go back to the first step'><a href='enact.php?pr={$pr['process_id']}&step={$pr['first_step_id']}'>{$pr['process_name']}</span></h3></a>" ?>
     </div>
     <div class="eleven wide column">
         <?php echo "<h3>$typeName</h3>" ?>
@@ -76,7 +78,7 @@ $decisionTables = $process->getDecisionTables($_GET['step']);
             $i = 0;
             foreach ($parallelActions as $pA) {
                 $i++;
-                echo "<div class=\"ui segment\">
+                echo "<div class='ui segment'>
                             <p>{$i}. {$pA['action_description']}</p>
                       </div>";
             }
@@ -86,7 +88,7 @@ $decisionTables = $process->getDecisionTables($_GET['step']);
             foreach ($decisionTables as $dT) {
                 echo "<h4>{$dT['decision_table_name']}</h4>";
                 $decisionTableEntries = $process->getDecisionTableEntries($dT['decision_table_id']);
-                echo "<table class=\"ui celled table\"><tbody>";
+                echo "<table class='ui celled table'><tbody>";
                 foreach ($decisionTableEntries as $dTE) {
                     echo "
                             <tr>
@@ -104,20 +106,20 @@ $decisionTables = $process->getDecisionTables($_GET['step']);
             foreach ($decisionOptions as $o) {
                 echo "
                 <a href='enact.php?pr={$step['process_id']}&step={$o['next_step_id']}'>
-                    <div class='ui green segment'><i class=\"angle right icon\"></i>{$o['guard']}<span style=\"float:right;\">{$o['weight']}</span></div>
+                    <div class='ui green segment'><i class='angle right icon'></i>{$o['guard']}<span style='float:right;'>{$o['weight']}</span></div>
                 </a>
                 ";
             }
         } else if ($step['next_step_id']) {
             echo "
                 <a href='enact.php?pr={$step['process_id']}&step={$step['next_step_id']}'>
-                    <div class='ui green inverted segment'><i class=\"angle right icon\"></i>NEXT</div>
+                    <div class='ui green inverted segment'><i class='angle right icon'></i>NEXT</div>
                 </a>
                 ";
         } else {
             echo "
                 <a href='index.php'>
-                    <div class='ui green inverted segment'><i class=\"check icon\"></i>THE PROCESS IS OVER</div>
+                    <div class='ui green inverted segment'><i class='check icon'></i>THE PROCESS IS OVER</div>
                 </a>
                 ";
         }
@@ -131,10 +133,10 @@ $decisionTables = $process->getDecisionTables($_GET['step']);
                 echo "<p>There are no associated process links.</p>";
             } else foreach ($processLinks as $prL) {
                 echo "
-                        <div class=\"item\">
-                            <div class=\"content\">
-                                <div class=\"description\">{$prL['process_link_name']}</div>
-                                <a class=\"header\" href='{$prL['process_link_url']}' target=\"_blank\">{$prL['process_link_url']}</a>
+                        <div class='item'>
+                            <div class='content'>
+                                <div class='description'>{$prL['process_link_name']}</div>
+                                <a class='header' href='{$prL['process_link_url']}' target='_blank'>{$prL['process_link_url']}</a>
                             </div>
                         </div>
                     ";
@@ -148,10 +150,10 @@ $decisionTables = $process->getDecisionTables($_GET['step']);
         foreach ($stepLinks as $stL) {
             $noStepLinks = false;
             echo "
-                        <div class=\"item\">
-                            <div class=\"content\">
-                                <div class=\"description\">{$stL['step_link_name']}</div>
-                                <a class=\"header\" href='{$stL['step_link_url']}' target=\"_blank\">{$stL['step_link_url']}</a>
+                        <div class='item'>
+                            <div class='content'>
+                                <div class='description'>{$stL['step_link_name']}</div>
+                                <a class='header' href='{$stL['step_link_url']}' target='_blank'>{$stL['step_link_url']}</a>
                             </div>
                         </div>
                     ";
@@ -167,10 +169,10 @@ $decisionTables = $process->getDecisionTables($_GET['step']);
             foreach ($parallelStepLinks as $pSL) {
                 $noStepLinks = false;
                 echo "
-                            <div class=\"item\">
-                                <div class=\"content\">
-                                    <div class=\"description\">{$pSL['step_link_name']}</div>
-                                    <a class=\"header\" href='{$pSL['step_link_url']}' target=\"_blank\">{$pSL['step_link_url']}</a>
+                            <div class='item'>
+                                <div class='content'>
+                                    <div class='description'>{$pSL['step_link_name']}</div>
+                                    <a class='header' href='{$pSL['step_link_url']}' target='_blank'>{$pSL['step_link_url']}</a>
                                 </div>
                             </div>
                         ";

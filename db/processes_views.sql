@@ -65,7 +65,7 @@ FROM processes.Action_in_parallel_activity INNER JOIN processes.Step ON Action_i
 COMMENT ON VIEW processes.parallel_actions IS 'This view shows action_id, parallel_activity_id, and description of every action step inside a parallel activity.';
 
 CREATE OR REPLACE VIEW processes.decision_options WITH (security_barrier) AS
-SELECT decision_id, next_step_id, guard, weight
+SELECT decision_id, option_id, next_step_id, guard, weight
 FROM processes.Option
 WITH CHECK OPTION;
 

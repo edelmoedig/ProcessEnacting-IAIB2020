@@ -155,7 +155,6 @@ CREATE TABLE processes.Process_link
     CONSTRAINT PK_Process_link PRIMARY KEY (process_link_id),
     CONSTRAINT AK_Process_link_priority UNIQUE (process_id, priority_nr),
     CONSTRAINT AK_Process_link_url UNIQUE (url, process_id),
-    CONSTRAINT CHK_Process_link_name_not_only_whitespace CHECK (name !~ '^[[:space:]]*$'),
     CONSTRAINT FK_Process_link_Process FOREIGN KEY (process_id) REFERENCES processes.Process (process_id) ON DELETE CASCADE ON UPDATE NO ACTION
 ) WITH (FILLFACTOR = 90);
 
@@ -170,7 +169,6 @@ CREATE TABLE processes.Step_link
     CONSTRAINT PK_Step_link PRIMARY KEY (step_link_id),
     CONSTRAINT AK_Step_link_priority UNIQUE (step_id, priority_nr),
     CONSTRAINT AK_Step_link_url UNIQUE (url, step_id),
-    CONSTRAINT CHK_Step_link_name_not_only_whitespace CHECK (name !~ '^[[:space:]]*$'),
     CONSTRAINT FK_Step_link_Step FOREIGN KEY (step_id) REFERENCES processes.Step (step_id) ON DELETE CASCADE ON UPDATE NO ACTION
 ) WITH (FILLFACTOR = 90);
 

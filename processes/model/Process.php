@@ -1,15 +1,18 @@
 <?php
 
-require "Connection.php";
+require "RegularConnection.php";
+require "AdminConnection.php";
 
 class Process
 {
 
     private $conn;
+    private $adminConn;
 
     public function __construct()
     {
-        $this->conn = Connection::get()->connect();
+        $this->conn = RegularConnection::get()->connect();
+        $this->adminConn = AdminConnection::get()->connect();
     }
 
     public function getAllActiveProcesses()
@@ -50,6 +53,13 @@ class Process
         return $process;
     }
 
+    public function getPossibleSteps($process_id, $except_step_id) {
+        $stmt = $this->conn->prepare("SELECT * FROM processes.process_steps LEFT JOIN processes.parallel_actions ON step_id = action_id WHERE action_id IS NULL AND process_id=? AND step_id <> ?");
+        $stmt->execute([$process_id, $except_step_id]);
+        $process = $stmt->fetchAll();
+        return $process;
+    }
+
     public function getStep($step_id)
     {
         $stmt = $this->conn->prepare("SELECT * FROM processes.process_steps WHERE step_id=?");
@@ -68,7 +78,7 @@ class Process
 
     public function getParallelActions($step_id)
     {
-        $stmt = $this->conn->prepare("SELECT * FROM processes.parallel_actions WHERE parallel_activity_id=? ORDER BY action_id");
+        $stmt = $this->conn->prepare("SELECT * FROM processes.parallel_actions WHERE parallel_activity_id=? ORDER BY action_id DESC");
         $stmt->execute([$step_id]);
         $parallels = $stmt->fetchAll();
         return $parallels;
@@ -132,7 +142,7 @@ class Process
 
     public function createProcess($name, $description, $owner, $password)
     {
-        $stmt = $this->conn->prepare("SELECT processes.f_register_process(?, ?, ?, ?)");
+        $stmt = $this->adminConn->prepare("SELECT processes.f_register_process(?, ?, ?, ?)");
         $stmt->execute([$name, $description, $owner, $password]);
         $result = $stmt->fetchColumn();
         return $result;
@@ -140,7 +150,7 @@ class Process
 
     public function changeProcessNameAndDescription($process_id, $name, $description)
     {
-        $stmt = $this->conn->prepare("SELECT processes.f_change_process_name_and_description(?, ?, ?)");
+        $stmt = $this->adminConn->prepare("SELECT processes.f_change_process_name_and_description(?, ?, ?)");
         $stmt->execute([$process_id, $name, $description]);
         $result = $stmt->fetchColumn();
         return $result;
@@ -148,7 +158,7 @@ class Process
 
     public function changeProcessPassword($process_id, $password)
     {
-        $stmt = $this->conn->prepare("SELECT processes.f_change_process_password(?, ?)");
+        $stmt = $this->adminConn->prepare("SELECT processes.f_change_process_password(?, ?)");
         $stmt->execute([$process_id, $password]);
         $result = $stmt->fetchColumn();
         return $result;
@@ -156,7 +166,7 @@ class Process
 
     public function activateProcess($process_id)
     {
-        $stmt = $this->conn->prepare("SELECT processes.f_activate_process(?)");
+        $stmt = $this->adminConn->prepare("SELECT processes.f_activate_process(?)");
         $stmt->execute([$process_id]);
         $result = $stmt->fetchColumn();
         return $result;
@@ -164,7 +174,7 @@ class Process
 
     public function deactivateProcess($process_id)
     {
-        $stmt = $this->conn->prepare("SELECT processes.f_deactivate_process(?)");
+        $stmt = $this->adminConn->prepare("SELECT processes.f_deactivate_process(?)");
         $stmt->execute([$process_id]);
         $result = $stmt->fetchColumn();
         return $result;
@@ -172,7 +182,7 @@ class Process
 
     public function endProcess($process_id)
     {
-        $stmt = $this->conn->prepare("SELECT processes.f_end_process(?)");
+        $stmt = $this->adminConn->prepare("SELECT processes.f_end_process(?)");
         $stmt->execute([$process_id]);
         $result = $stmt->fetchColumn();
         return $result;
@@ -180,7 +190,7 @@ class Process
 
     public function deleteProcess($process_id)
     {
-        $stmt = $this->conn->prepare("SELECT processes.f_forget_process(?)");
+        $stmt = $this->adminConn->prepare("SELECT processes.f_forget_process(?)");
         $stmt->execute([$process_id]);
         $result = $stmt->fetchColumn();
         return $result;
@@ -188,7 +198,7 @@ class Process
 
     public function addFirstAction($process_id, $description)
     {
-        $stmt = $this->conn->prepare("SELECT processes.f_add_first_action(?, ?)");
+        $stmt = $this->adminConn->prepare("SELECT processes.f_add_first_action(?, ?)");
         $stmt->execute([$process_id, $description]);
         $result = $stmt->fetchColumn();
         return $result;
@@ -196,7 +206,7 @@ class Process
 
     public function addActionToStep($process_id, $previous_step_id, $description)
     {
-        $stmt = $this->conn->prepare("SELECT processes.f_add_action_to_step(?, ?, ?)");
+        $stmt = $this->adminConn->prepare("SELECT processes.f_add_action_to_step(?, ?, ?)");
         $stmt->execute([$process_id, $previous_step_id, $description]);
         $result = $stmt->fetchColumn();
         return $result;
@@ -204,7 +214,7 @@ class Process
 
     public function addActionToStepExistingNext($process_id, $previous_step_id, $next_step_id, $description)
     {
-        $stmt = $this->conn->prepare("SELECT processes.f_add_action_to_step_existing_next(?, ?, ?, ?)");
+        $stmt = $this->adminConn->prepare("SELECT processes.f_add_action_to_step_existing_next(?, ?, ?, ?)");
         $stmt->execute([$process_id, $previous_step_id, $next_step_id, $description]);
         $result = $stmt->fetchColumn();
         return $result;
@@ -212,7 +222,7 @@ class Process
 
     public function addActionToOption($process_id, $option_id, $description)
     {
-        $stmt = $this->conn->prepare("SELECT processes.f_add_action_to_option(?, ?, ?)");
+        $stmt = $this->adminConn->prepare("SELECT processes.f_add_action_to_option(?, ?, ?)");
         $stmt->execute([$process_id, $option_id, $description]);
         $result = $stmt->fetchColumn();
         return $result;
@@ -220,7 +230,7 @@ class Process
 
     public function addActionToOptionExistingNext($process_id, $option_id, $next_step_id, $description)
     {
-        $stmt = $this->conn->prepare("SELECT processes.f_add_action_to_option_existing_next(?, ?, ?, ?)");
+        $stmt = $this->adminConn->prepare("SELECT processes.f_add_action_to_option_existing_next(?, ?, ?, ?)");
         $stmt->execute([$process_id, $option_id, $next_step_id, $description]);
         $result = $stmt->fetchColumn();
         return $result;
@@ -228,7 +238,7 @@ class Process
 
     public function addFirstParallelActivity($process_id, $description)
     {
-        $stmt = $this->conn->prepare("SELECT processes.f_add_first_parallel_activity(?, ?)");
+        $stmt = $this->adminConn->prepare("SELECT processes.f_add_first_parallel_activity(?, ?)");
         $stmt->execute([$process_id, $description]);
         $result = $stmt->fetchColumn();
         return $result;
@@ -236,7 +246,7 @@ class Process
 
     public function addParallelActivityToStep($process_id, $previous_step_id, $description)
     {
-        $stmt = $this->conn->prepare("SELECT processes.f_add_parallel_activity_to_step(?, ?, ?)");
+        $stmt = $this->adminConn->prepare("SELECT processes.f_add_parallel_activity_to_step(?, ?, ?)");
         $stmt->execute([$process_id, $previous_step_id, $description]);
         $result = $stmt->fetchColumn();
         return $result;
@@ -244,7 +254,7 @@ class Process
 
     public function addParallelActivityToStepExistingNext($process_id, $previous_step_id, $next_step_id, $description)
     {
-        $stmt = $this->conn->prepare("SELECT processes.f_add_parallel_activity_to_step_existing_next(?, ?, ?, ?)");
+        $stmt = $this->adminConn->prepare("SELECT processes.f_add_parallel_activity_to_step_existing_next(?, ?, ?, ?)");
         $stmt->execute([$process_id, $previous_step_id, $next_step_id, $description]);
         $result = $stmt->fetchColumn();
         return $result;
@@ -252,7 +262,7 @@ class Process
 
     public function addParallelActivityToOption($process_id, $option_id, $description)
     {
-        $stmt = $this->conn->prepare("SELECT processes.f_add_parallel_activity_to_option(?, ?, ?)");
+        $stmt = $this->adminConn->prepare("SELECT processes.f_add_parallel_activity_to_option(?, ?, ?)");
         $stmt->execute([$process_id, $option_id, $description]);
         $result = $stmt->fetchColumn();
         return $result;
@@ -260,7 +270,7 @@ class Process
 
     public function addParallelActivityToOptionExistingNext($process_id, $option_id, $next_step_id, $description)
     {
-        $stmt = $this->conn->prepare("SELECT processes.f_add_parallel_activity_to_option_existing_next(?, ?, ?, ?)");
+        $stmt = $this->adminConn->prepare("SELECT processes.f_add_parallel_activity_to_option_existing_next(?, ?, ?, ?)");
         $stmt->execute([$process_id, $option_id, $next_step_id, $description]);
         $result = $stmt->fetchColumn();
         return $result;
@@ -268,7 +278,7 @@ class Process
 
     public function addActionInParallelActivity($process_id, $parallel_activity_id, $description)
     {
-        $stmt = $this->conn->prepare("SELECT processes.f_add_action_in_parallel_activity(?, ?, ?)");
+        $stmt = $this->adminConn->prepare("SELECT processes.f_add_action_in_parallel_activity(?, ?, ?)");
         $stmt->execute([$process_id, $parallel_activity_id, $description]);
         $result = $stmt->fetchColumn();
         return $result;
@@ -276,7 +286,7 @@ class Process
 
     public function addFirstDecision($process_id, $description)
     {
-        $stmt = $this->conn->prepare("SELECT processes.f_add_first_decision(?, ?)");
+        $stmt = $this->adminConn->prepare("SELECT processes.f_add_first_decision(?, ?)");
         $stmt->execute([$process_id, $description]);
         $result = $stmt->fetchColumn();
         return $result;
@@ -284,7 +294,7 @@ class Process
 
     public function addDecisionToStep($process_id, $previous_step_id, $description)
     {
-        $stmt = $this->conn->prepare("SELECT processes.f_add_decision_to_step(?, ?, ?)");
+        $stmt = $this->adminConn->prepare("SELECT processes.f_add_decision_to_step(?, ?, ?)");
         $stmt->execute([$process_id, $previous_step_id, $description]);
         $result = $stmt->fetchColumn();
         return $result;
@@ -292,7 +302,7 @@ class Process
 
     public function addDecisionToStepExistingNext($process_id, $previous_step_id, $next_step_id, $description)
     {
-        $stmt = $this->conn->prepare("SELECT processes.f_add_decision_to_step_existing_next(?, ?, ?, ?)");
+        $stmt = $this->adminConn->prepare("SELECT processes.f_add_decision_to_step_existing_next(?, ?, ?, ?)");
         $stmt->execute([$process_id, $previous_step_id, $next_step_id, $description]);
         $result = $stmt->fetchColumn();
         return $result;
@@ -300,7 +310,7 @@ class Process
 
     public function addDecisionToOption($process_id, $option_id, $description)
     {
-        $stmt = $this->conn->prepare("SELECT processes.f_add_decision_to_option(?, ?, ?)");
+        $stmt = $this->adminConn->prepare("SELECT processes.f_add_decision_to_option(?, ?, ?)");
         $stmt->execute([$process_id, $option_id, $description]);
         $result = $stmt->fetchColumn();
         return $result;
@@ -308,15 +318,15 @@ class Process
 
     public function addDecisionToOptionExistingNext($process_id, $option_id, $next_step_id, $description)
     {
-        $stmt = $this->conn->prepare("SELECT processes.f_add_decision_to_option_existing_next(?, ?, ?, ?)");
+        $stmt = $this->adminConn->prepare("SELECT processes.f_add_decision_to_option_existing_next(?, ?, ?, ?)");
         $stmt->execute([$process_id, $option_id, $next_step_id, $description]);
         $result = $stmt->fetchColumn();
         return $result;
     }
 
-    public function addOptionToDecision($decision_id, $weight, $guard)
+    public function addOptionToDecision($decision_id, $guard, $weight)
     {
-        $stmt = $this->conn->prepare("SELECT processes.f_add_option_to_decision(?, ?, ?)");
+        $stmt = $this->adminConn->prepare("SELECT processes.f_add_option_to_decision(?, ?, ?)");
         $stmt->execute([$decision_id, $weight, $guard]);
         $result = $stmt->fetchColumn();
         return $result;
@@ -324,7 +334,7 @@ class Process
 
     public function addOptionToDecisionExistingNext($decision_id, $next_step_id, $weight, $guard)
     {
-        $stmt = $this->conn->prepare("SELECT processes.f_add_option_to_decision_existing_next(?, ?, ?, ?)");
+        $stmt = $this->adminConn->prepare("SELECT processes.f_add_option_to_decision_existing_next(?, ?, ?, ?)");
         $stmt->execute([$decision_id, $next_step_id, $weight, $guard]);
         $result = $stmt->fetchColumn();
         return $result;
@@ -332,7 +342,7 @@ class Process
 
     public function removeOptionFromDecision($option_id)
     {
-        $stmt = $this->conn->prepare("SELECT processes.f_remove_option_from_decision(?)");
+        $stmt = $this->adminConn->prepare("SELECT processes.f_remove_option_from_decision(?)");
         $stmt->execute([$option_id]);
         $result = $stmt->fetchColumn();
         return $result;
@@ -340,15 +350,23 @@ class Process
 
     public function changeOptionGuardAndWeight($option_id, $guard, $weight)
     {
-        $stmt = $this->conn->prepare("SELECT processes.f_change_option_weight_and_guard(?, ?, ?)");
+        $stmt = $this->adminConn->prepare("SELECT processes.f_change_option_weight_and_guard(?, ?, ?)");
         $stmt->execute([$option_id, $guard, $weight]);
+        $result = $stmt->fetchColumn();
+        return $result;
+    }
+
+    public function changeStepDescription($step_id, $description)
+    {
+        $stmt = $this->adminConn->prepare("SELECT processes.f_change_step_description(?, ?)");
+        $stmt->execute([$step_id, $description]);
         $result = $stmt->fetchColumn();
         return $result;
     }
 
     public function removeStep($step_id)
     {
-        $stmt = $this->conn->prepare("SELECT processes.f_remove_step(?)");
+        $stmt = $this->adminConn->prepare("SELECT processes.f_remove_step(?)");
         $stmt->execute([$step_id]);
         $result = $stmt->fetchColumn();
         return $result;
@@ -356,7 +374,7 @@ class Process
 
     public function changeStepNextStep($step_id, $next_step_id)
     {
-        $stmt = $this->conn->prepare("SELECT processes.f_change_step_next_step(?, ?)");
+        $stmt = $this->adminConn->prepare("SELECT processes.f_change_step_next_step(?, ?)");
         $stmt->execute([$step_id, $next_step_id]);
         $result = $stmt->fetchColumn();
         return $result;
@@ -364,49 +382,49 @@ class Process
 
     public function changeOptionNextStep($option_id, $next_step_id)
     {
-        $stmt = $this->conn->prepare("SELECT processes.f_change_option_next_step(?, ?)");
+        $stmt = $this->adminConn->prepare("SELECT processes.f_change_option_next_step(?, ?)");
         $stmt->execute([$option_id, $next_step_id]);
         $result = $stmt->fetchColumn();
         return $result;
     }
 
     public function addProcessLink($process_id, $url, $name, $priority) {
-        $stmt = $this->conn->prepare("SELECT processes.f_add_process_link(?, ?, ?, ?)");
+        $stmt = $this->adminConn->prepare("SELECT processes.f_add_process_link(?, ?, ?, ?)");
         $stmt->execute([$process_id, $url, $name, $priority]);
         $result = $stmt->fetchColumn();
         return $result;
     }
 
     public function removeProcessLink($process_link_id) {
-        $stmt = $this->conn->prepare("SELECT processes.f_remove_process_link(?)");
+        $stmt = $this->adminConn->prepare("SELECT processes.f_remove_process_link(?)");
         $stmt->execute([$process_link_id]);
         $result = $stmt->fetchColumn();
         return $result;
     }
 
     public function editProcessLink($process_link_id, $url, $name, $priority) {
-        $stmt = $this->conn->prepare("SELECT processes.f_edit_process_link(?, ?, ?, ?)");
+        $stmt = $this->adminConn->prepare("SELECT processes.f_edit_process_link(?, ?, ?, ?)");
         $stmt->execute([$process_link_id, $url, $name, $priority]);
         $result = $stmt->fetchColumn();
         return $result;
     }
 
     public function addStepLink($step_id, $url, $name, $priority) {
-        $stmt = $this->conn->prepare("SELECT processes.f_add_step_link(?, ?, ?, ?)");
+        $stmt = $this->adminConn->prepare("SELECT processes.f_add_step_link(?, ?, ?, ?)");
         $stmt->execute([$step_id, $url, $name, $priority]);
         $result = $stmt->fetchColumn();
         return $result;
     }
 
     public function removeStepLink($step_link_id) {
-        $stmt = $this->conn->prepare("SELECT processes.f_remove_step_link(?)");
+        $stmt = $this->adminConn->prepare("SELECT processes.f_remove_step_link(?)");
         $stmt->execute([$step_link_id]);
         $result = $stmt->fetchColumn();
         return $result;
     }
 
     public function editStepLink($step_link_id, $url, $name, $priority) {
-        $stmt = $this->conn->prepare("SELECT processes.f_edit_step_link(?, ?, ?, ?)");
+        $stmt = $this->adminConn->prepare("SELECT processes.f_edit_step_link(?, ?, ?, ?)");
         $stmt->execute([$step_link_id, $url, $name, $priority]);
         $result = $stmt->fetchColumn();
         return $result;
@@ -420,42 +438,42 @@ class Process
     }
 
     public function switchDecisionTableActivation($decision_table_id) {
-        $stmt = $this->conn->prepare("SELECT processes.f_switch_activation_decision_table(?)");
+        $stmt = $this->adminConn->prepare("SELECT processes.f_switch_activation_decision_table(?)");
         $stmt->execute([$decision_table_id]);
         $result = $stmt->fetchColumn();
         return $result;
     }
 
     public function removeDecisionTableActivation($decision_table_id) {
-        $stmt = $this->conn->prepare("SELECT processes.f_remove_decision_table(?)");
+        $stmt = $this->adminConn->prepare("SELECT processes.f_remove_decision_table(?)");
         $stmt->execute([$decision_table_id]);
         $result = $stmt->fetchColumn();
         return $result;
     }
 
     public function changeDecisionTableName($decision_table_id, $name) {
-        $stmt = $this->conn->prepare("SELECT processes.f_change_decision_table_name(?)");
+        $stmt = $this->adminConn->prepare("SELECT processes.f_change_decision_table_name(?)");
         $stmt->execute([$decision_table_id, $name]);
         $result = $stmt->fetchColumn();
         return $result;
     }
 
     public function addDecisionTableEntry($decision_table_id, $condition, $action, $seq_nr) {
-        $stmt = $this->conn->prepare("SELECT processes.f_change_decision_table_name(?, ?, ?, ?)");
+        $stmt = $this->adminConn->prepare("SELECT processes.f_change_decision_table_name(?, ?, ?, ?)");
         $stmt->execute([$decision_table_id, $condition, $action, $seq_nr]);
         $result = $stmt->fetchColumn();
         return $result;
     }
 
     public function removeDecisionTableEntry($decision_table_entry_id) {
-        $stmt = $this->conn->prepare("SELECT processes.f_remove_decision_table_entry(?)");
+        $stmt = $this->adminConn->prepare("SELECT processes.f_remove_decision_table_entry(?)");
         $stmt->execute([$decision_table_entry_id]);
         $result = $stmt->fetchColumn();
         return $result;
     }
 
     public function changeDecisionTableEntry($decision_table_entry_id, $condition, $action, $seq_nr) {
-        $stmt = $this->conn->prepare("SELECT processes.f_change_decision_table_entry(?, ?, ?, ?)");
+        $stmt = $this->adminConn->prepare("SELECT processes.f_change_decision_table_entry(?, ?, ?, ?)");
         $stmt->execute([$decision_table_entry_id, $condition, $action, $seq_nr]);
         $result = $stmt->fetchColumn();
         return $result;

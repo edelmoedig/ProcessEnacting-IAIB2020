@@ -17,20 +17,21 @@ unset($_SESSION['currentUsage']);
 <html lang="en">
 <head>
     <title>Active processes</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" type="text/css" href="default.css">
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script>
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.4/dist/semantic.min.css">
     <script src="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.4/dist/semantic.min.js"></script>
 </head>
 <body>
-<?php include "navigation.php"; ?>
-<?php include "password_access.php"; ?>
+<?php include "include/navigation.php"; ?>
+<?php include "include/password_access.php"; ?>
 
 <?php
 if (isset($_SESSION['error'])) {
-    echo "<div class=\"ui center aligned three column grid\">
-            <div class=\"ui negative message\">
-                <div class=\"header\">
+    echo "<div class='ui center aligned three column grid'>
+            <div class='ui negative message'>
+                <div class='header'>
                      Error
                 </div>
     ";
@@ -38,9 +39,9 @@ if (isset($_SESSION['error'])) {
     unset($_SESSION['error']);
 }
 if (isset($_SESSION['success'])) {
-    echo "<div class=\"ui center aligned three column grid\">
-            <div class=\"ui positive message\">
-                <div class=\"header\">
+    echo "<div class='ui center aligned three column grid'>
+            <div class='ui positive message'>
+                <div class='header'>
                     Login success
                 </div>
     ";
@@ -49,7 +50,7 @@ if (isset($_SESSION['success'])) {
 }
 ?>
 
-<?php include "search.php"; ?>
+<?php include "include/search.php"; ?>
 
 <?php
 
@@ -61,11 +62,11 @@ foreach ($processes as $pr) {
                 <p>{$pr['process_description']}</p>
                     <a href='?access={$pr['process_id']}'>
                         <div class='ui yellow inverted clickable segment'>
-                        <i class=\"angle right icon\"></i>
-                            <i class=\"lock icon\"></i>ENTER WITH PASSWORD
+                        <i class='angle right icon'></i>
+                            <i class='lock icon'></i>ENTER WITH PASSWORD
                         </div>
                     </a>
-                    <p><small><i class=\"address card outline icon\"></i>{$pr['owner']}<i class=\"calendar alternate outline icon\"></i>{$pr['reg_time']}</small></p>
+                    <p><small><i class='address card outline icon'></i>{$pr['owner']}<i class='calendar alternate outline icon'></i>{$pr['reg_time']}</small></p>
             </div>";
     }
     else {
@@ -75,11 +76,11 @@ foreach ($processes as $pr) {
                 <p>{$pr['process_description']}</p>
                     <a href='enact.php?pr={$pr['process_id']}&step={$pr['first_step_id']}'>
                         <div class='ui green inverted clickable segment'>
-                        <i class=\"angle right icon\"></i>
+                        <i class='angle right icon'></i>
                             ENTER
                         </div>
                     </a>
-                    <p><small><i class=\"address card outline icon\"></i>{$pr['owner']}<i class=\"calendar alternate outline icon\"></i>{$pr['reg_time']}</small></p>
+                    <p><small><i class='address card outline icon'></i>{$pr['owner']}<i class='calendar alternate outline icon'></i>{$pr['reg_time']}</small></p>
             </div>";
     }
 }

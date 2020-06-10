@@ -9,7 +9,7 @@ try {
         header("Refresh: 0");
         exit();
     } else if (isset($_POST['remove-link-btn'])) {
-        $process->removeProcessLink($_POST['edit-link-btn']);
+        $process->removeProcessLink($_POST['remove-link-btn']);
         header("Refresh: 0");
         exit();
     } else if (isset($_POST['add-link-btn'])) {
@@ -22,10 +22,10 @@ try {
     exit();
 }
 
-echo "<div class='ui raised text container segment'>";
-echo "<h3>Process links</h3><form method='post' class='ui form'>";
-echo "
-      <div class='inline fields'>
+echo "<div class='ui raised text container segment'>
+    <h3>Process links</h3>
+    <form method='post' class='ui form'>
+        <div class='inline fields'>
             <div class='six wide field'>
                 <input type='text' name='new-link-url' placeholder='URL (unique)' required>
             </div>
@@ -38,13 +38,14 @@ echo "
             <div class='field'>
                 <button name='add-link-btn' class='ui green button' type='submit'>Add</button>
             </div>
-      </div>
+        </div>
+        </form>
     ";
 if (empty($processLinks)) {
     echo "<p>There are no associated process links.</p>";
 } else {
     foreach ($processLinks as $prL) {
-        echo "
+        echo "<form method='post' class='ui form'>
               <div class='inline fields'>
                     <div class='six wide field'>
                         <input type='text' name='link-url-{$prL['process_link_id']}' placeholder='URL (unique)' value='{$prL['process_link_url']}'>
@@ -62,6 +63,7 @@ if (empty($processLinks)) {
                         <button value='{$prL['process_link_id']}' name='remove-link-btn' class='ui icon red button' type='submit'><i class='trash icon'></i></button>
                     </div>
               </div>
+              </form>
         ";
     }
 }

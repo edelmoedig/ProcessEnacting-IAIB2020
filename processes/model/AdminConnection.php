@@ -1,15 +1,9 @@
 <?php
 
-class Connection
+class AdminConnection
 {
 
     private static $conn;
-    private $user;
-
-    function __construct($user='process_administrator')
-    {
-        $this->user = $user;
-    }
 
     public function connect()
     {
@@ -18,7 +12,7 @@ class Connection
             'localhost',
             '5432',
             'processes',
-            $this->user,
+            'process_administrator',
             'wasd1234');
 
         $pdo = new PDO($conStr);

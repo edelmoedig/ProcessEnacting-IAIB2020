@@ -124,7 +124,7 @@ GRANT EXECUTE ON ROUTINE processes.f_change_option_next_step(p_current_option_id
 
 
 
-GRANT EXECUTE ON ROUTINE processes.f_register_administrator(p_email character varying, p_password character varying, p_given_name character varying, p_surname character varying) TO process_administrator;
+GRANT EXECUTE ON ROUTINE processes.f_register_administrator(p_email character varying, p_password character varying, p_given_name character varying, p_surname character varying) TO process_user;
 GRANT EXECUTE ON ROUTINE processes.f_log_process_usage(p_process_id integer) TO process_user;
 GRANT EXECUTE ON ROUTINE processes.f_log_step_click(p_process_usage_id bigint, p_step_id integer) TO process_user;
 GRANT EXECUTE ON ROUTINE processes.f_login_get_administrator_id(p_email character varying, p_password character varying) TO process_user;

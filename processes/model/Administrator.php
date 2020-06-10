@@ -1,6 +1,6 @@
 <?php
 
-require "Connection.php";
+require "RegularConnection.php";
 
 class Administrator
 {
@@ -9,7 +9,7 @@ class Administrator
 
     public function __construct()
     {
-        $this->conn = Connection::get()->connect();
+        $this->conn = RegularConnection::get()->connect();
     }
 
     public function register($email, $password, $given_name, $surname)

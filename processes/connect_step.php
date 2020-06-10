@@ -2,6 +2,7 @@
 header('Content-Type: text/html; charset=utf-8');
 
 require "model/Process.php";
+
 session_start();
 
 if (!isset($_SESSION['id'])) {
@@ -10,16 +11,12 @@ if (!isset($_SESSION['id'])) {
 }
 
 $process = new Process();
-$pr = $process->getProcess($_GET['pr']);
-if (empty($pr)) {
-    header("Location: overview.php");
-    exit;
-}
+
 ?>
 
 <html lang="en">
 <head>
-    <title>Edit</title>
+    <title>Edit step</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" type="text/css" href="default.css">
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script>
@@ -27,13 +24,8 @@ if (empty($pr)) {
     <script src="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.4/dist/semantic.min.js"></script>
 </head>
 <body>
-<?php include "include/navigation.php"; ?>
 
-<?php include 'include/form_edit_process_name_desc.php'; ?>
-<?php include 'include/form_change_process_status.php'; ?>
-<?php include 'include/form_change_process_password.php'; ?>
-<?php include 'include/form_first_step.php'; ?>
-<?php include 'include/form_process_links.php'; ?>
+<?php
 
-</body>
-</html>
+include "include/navigation.php";
+include 'include/form_existing_connection.php';
