@@ -54,8 +54,8 @@ class Process
     }
 
     public function getPossibleSteps($process_id, $except_step_id) {
-        $stmt = $this->conn->prepare("SELECT * FROM processes.process_steps LEFT JOIN processes.parallel_actions ON step_id = action_id WHERE action_id IS NULL AND process_id=? AND step_id <> ?");
-        $stmt->execute([$process_id, $except_step_id]);
+        $stmt = $this->conn->prepare("SELECT * FROM processes.process_steps LEFT JOIN processes.parallel_actions ON step_id = action_id WHERE action_id IS NULL AND process_id = ? AND step_id <> ? AND next_step_id <> ?");
+        $stmt->execute([$process_id, $except_step_id, $except_step_id]);
         $process = $stmt->fetchAll();
         return $process;
     }
