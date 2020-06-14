@@ -38,7 +38,7 @@ try {
         echo "<script>window.location = '../processes/add_step.php?pr={$_GET['pr']}&option={$_POST['add-next-parallel-btn']}&prev={$_GET['step']}&type=parallel'</script>";
         exit();
     } else if (isset($_POST['connect-existing-btn'])) {
-        echo "<script>window.location = '../processes/connect_step.php?pr={$_GET['pr']}&option={$_POST['connect-existing-btn']}&step={$_GET['step']}&connect=true";
+        echo "<script>window.location = '../processes/connect_step.php?pr={$_GET['pr']}&option={$_POST['connect-existing-btn']}&step={$_GET['step']}&connect=true</script>";
         exit();
     }
 } catch (PDOException $e) {

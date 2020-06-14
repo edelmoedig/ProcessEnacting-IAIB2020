@@ -13,23 +13,24 @@ $process = new Process();
 $pr = $process->getProcess($_GET['pr']);
 if (empty($pr)) {
     $_SESSION['error'] = "There is no such process.";
-    header("Location: overview.php");
+    echo "<script>window.location = 'overview.php'</script>";
     exit;
 }
 
-if ($pr['current_status'] != "On hold" || $pr['current_status'] != "Inactive") {
-    header("Location: edit.php?pr={$_GET['pr']}");
+if (!in_array($pr['current_status'], ['On hold', 'Inactive'])) {
+    echo "<script>window.location = 'edit.php?pr={$_GET['pr']}'</script>";
+    exit;
 }
 
 $validTypes = array('action', 'decision', 'parallel');
 if (($pr['first_step_id'] != null && !isset($_GET['prev']) || !in_array($_GET['type'], $validTypes))) {
-    header("Location: edit.php?pr={$_GET['pr']}");
+    echo "<script>window.location = 'edit.php?pr={$_GET['pr']}'</script>";
     exit;
 }
 if (isset($_GET['prev'])) {
     $prev = $process->getStep($_GET['prev']);
     if (empty($prev) || ($prev['process_id'] != $_GET['pr'])) {
-        header("Location: edit.php?pr={$_GET['pr']}");
+        echo "<script>window.location = 'edit.php?pr={$_GET['pr']}'</script>";
         exit;
     }
 }
@@ -37,43 +38,43 @@ try {
     if (!empty($_GET['option'])) {
         if (isset($_POST['add-action-btn'])) {
             $step = $process->addActionToOption($_GET['pr'], $_GET['option'], htmlspecialchars($_POST['step-description']));
-            header("Location: edit_step.php?pr={$_GET['pr']}&step={$step}&prev={$_GET['prev']}");
+            echo "<script>window.location = 'edit_step.php?pr={$_GET['pr']}&step={$step}&prev={$_GET['prev']}}'</script>";
             exit;
         } else if (isset($_POST['add-decision-btn'])) {
             $step = $process->addDecisionToOption($_GET['pr'], $_GET['option'], htmlspecialchars($_POST['step-description']));
-            header("Location: edit_step.php?pr={$_GET['pr']}&step={$step}&prev={$_GET['prev']}");
+            echo "<script>window.location = 'edit_step.php?pr={$_GET['pr']}&step={$step}&prev={$_GET['prev']}'</script>";
             exit;
         } else if (isset($_POST['add-parallel-btn'])) {
             $step = $process->addParallelActivityToOption($_GET['pr'], $_GET['option'], htmlspecialchars($_POST['step-description']));
-            header("Location: edit_step.php?pr={$_GET['pr']}&step={$step}&prev={$_GET['prev']}");
+            echo "<script>window.location = 'edit_step.php?pr={$_GET['pr']}&step={$step}&prev={$_GET['prev']}'</script>";
             exit;
         }
     } else if (empty($_GET['prev'])) {
         if (isset($_POST['add-action-btn'])) {
             $step = $process->addFirstAction($_GET['pr'], htmlspecialchars($_POST['step-description']));
-            header("Location: edit_step.php?pr={$_GET['pr']}&step={$step}");
+            echo "<script>window.location = 'edit_step.php?pr={$_GET['pr']}&step={$step}'</script>";
             exit;
         } else if (isset($_POST['add-decision-btn'])) {
             $step = $process->addFirstDecision($_GET['pr'], htmlspecialchars($_POST['step-description']));
-            header("Location: edit_step.php?pr={$_GET['pr']}&step={$step}");
+            echo "<script>window.location = 'edit_step.php?pr={$_GET['pr']}&step={$step}'</script>";
             exit;
         } else if (isset($_POST['add-parallel-btn'])) {
             $step = $process->addFirstParallelActivity($_GET['pr'], htmlspecialchars($_POST['step-description']));
-            header("Location: edit_step.php?pr={$_GET['pr']}&step={$step}");
+            echo "<script>window.location = 'edit_step.php?pr={$_GET['pr']}&step={$step}'</script>";
             exit;
         }
     } else if (!empty($_GET['prev'])) {
         if (isset($_POST['add-action-btn'])) {
             $step = $process->addActionToStep($_GET['pr'], $_GET['prev'], htmlspecialchars($_POST['step-description']));
-            header("Location: edit_step.php?pr={$_GET['pr']}&step={$step}&prev={$_GET['prev']}");
+            echo "<script>window.location = 'edit_step.php?pr={$_GET['pr']}&step={$step}&prev={$_GET['prev']}'</script>";
             exit;
         } else if (isset($_POST['add-decision-btn'])) {
             $step = $process->addDecisionToStep($_GET['pr'], $_GET['prev'], htmlspecialchars($_POST['step-description']));
-            header("Location: edit_step.php?pr={$_GET['pr']}&step={$step}&prev={$_GET['prev']}");
+            echo "<script>window.location = 'edit_step.php?pr={$_GET['pr']}&step={$step}&prev={$_GET['prev']}'</script>";
             exit;
         } else if (isset($_POST['add-parallel-btn'])) {
             $step = $process->addParallelActivityToStep($_GET['pr'], $_GET['prev'], htmlspecialchars($_POST['step-description']));
-            header("Location: edit_step.php?pr={$_GET['pr']}&step={$step}&prev={$_GET['prev']}");
+            echo "<script>window.location = 'edit_step.php?pr={$_GET['pr']}&step={$step}&prev={$_GET['prev']}'</script>";
             exit;
         }
     }
