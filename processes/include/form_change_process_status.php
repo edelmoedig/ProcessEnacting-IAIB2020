@@ -11,23 +11,23 @@ if ($pr['current_status'] == 'On hold') {
 try {
     if (isset($_POST['activate-btn'])) {
         $process->activateProcess($pr['process_id']);
-        header('Refresh: 0');
+        echo "<meta http-equiv='refresh' content='0'>";
         exit();
     } else if (isset($_POST['deactivate-btn'])) {
         $process->deactivateProcess($pr['process_id']);
-        header('Refresh: 0');
+        echo "<meta http-equiv='refresh' content='0'>";
         exit();
     } else if (isset($_POST['end-btn'])) {
         $process->endProcess($pr['process_id']);
-        header('Refresh: 0');
+        echo "<meta http-equiv='refresh' content='0'>";
         exit();
     } else if (isset($_POST['delete-btn'])) {
         $process->deleteProcess($pr['process_id']);
-        header('Location: overview.php');
+        echo "<meta http-equiv='refresh' content='0'>";
         exit();
     }
 } catch (PDOException $e) {
-    header('Refresh: 0');
+    echo "<meta http-equiv='refresh' content='0'>";
 }
 
 echo "

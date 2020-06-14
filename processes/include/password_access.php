@@ -2,7 +2,7 @@
 
 if (isset($_GET["access"]) && isset($_SESSION['accessedProcesses']) && in_array($_GET["access"], $_SESSION['accessedProcesses'])) {
     $first_step = (new Process)->getProcess($_GET["access"])['first_step_id'];
-    header("Location: enact.php?pr={$_GET["access"]}&step={$first_step}");
+    echo "<script>window.location = 'enact.php?pr={$_GET['access']}&step={$first_step}'</script>";
     exit;
 }
 
@@ -12,7 +12,7 @@ if (!empty($_POST["password"])) {
         if ($result) {
             $first_step = (new Process)->getProcess($_GET["access"])['first_step_id'];
             $_SESSION['accessedProcesses'][] = $_GET["access"];
-            header("Location: enact.php?pr={$_GET["access"]}&step={$first_step}");
+            echo "<script>window.location = 'enact.php?pr={$_GET['access']}&step={$first_step}'</script>";
             exit;
         } else {
             $_SESSION['error'] = "Wrong password.";

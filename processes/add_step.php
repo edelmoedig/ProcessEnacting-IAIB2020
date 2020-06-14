@@ -78,7 +78,7 @@ try {
         }
     }
 } catch (PDOException $e) {
-    header("Refresh: 0");
+    echo "<meta http-equiv='refresh' content='0'>";
     exit;
 }
 

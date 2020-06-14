@@ -5,28 +5,28 @@ $parallelActions = $process->getParallelActions($_GET['step']);
 try {
     if (isset($_POST['edit-step-btn']) && !empty($_POST['step-description'])) {
         $process->changeStepDescription($step['step_id'], htmlspecialchars($_POST['step-description']));
-        header('Refresh: 0');
+        echo "<meta http-equiv='refresh' content='0'>";
         exit();
     } else if (isset($_POST['edit-action-btn'])) {
         $id = $_POST['edit-action-btn'];
         if (!empty($_POST['action-description-' . $id])) {
             $process->changeStepDescription($id, htmlspecialchars($_POST['action-description-' . $id]));
         }
-        header("Refresh: 0");
+        echo "<meta http-equiv='refresh' content='0'>";
         exit();
     } else if (isset($_POST['remove-action-btn'])) {
         $process->removeStep($_POST['remove-action-btn']);
-        header("Refresh: 0");
+        echo "<meta http-equiv='refresh' content='0'>";
         exit();
     } else if (isset($_POST['add-action-btn'])) {
         if (!empty($_POST['new-action-description'])) {
             $process->addActionInParallelActivity($_GET['pr'], $_GET['step'], htmlspecialchars($_POST['new-action-description']));
         }
-        header("Refresh: 0");
+        echo "<meta http-equiv='refresh' content='0'>";
         exit();
     }
 } catch (PDOException $e) {
-    header("Refresh: 0");
+    echo "<meta http-equiv='refresh' content='0'>";
     exit();
 }
 

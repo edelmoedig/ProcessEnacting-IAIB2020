@@ -7,7 +7,7 @@ if (!empty($_POST['process-name']) && !empty($_POST['process-description'])) {
         $password = $_POST['process-password'];
     }
     $process->createProcess($_POST['process-name'], $_POST['process-description'], $_SESSION['id'], $password);
-    header("Refresh:0");
+    echo "<meta http-equiv='refresh' content='0'>";
     exit();
 }
 

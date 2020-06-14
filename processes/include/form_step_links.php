@@ -6,19 +6,19 @@ try {
     if (isset($_POST['edit-link-btn'])) {
         $id = $_POST['edit-link-btn'];
         $process->editStepLink($id, htmlspecialchars($_POST['link-url-' . $id]), htmlspecialchars($_POST['link-name-' . $id]), $_POST['link-priority-' . $id]);
-        header("Refresh: 0");
+        echo "<meta http-equiv='refresh' content='0'>";
         exit();
     } else if (isset($_POST['remove-link-btn'])) {
         $process->removeStepLink($_POST['remove-link-btn']);
-        header("Refresh: 0");
+        echo "<meta http-equiv='refresh' content='0'>";
         exit();
     } else if (isset($_POST['add-link-btn'])) {
         $process->addStepLink($_GET['step'], htmlspecialchars($_POST['new-link-url']), htmlspecialchars($_POST['new-link-name']), $_POST['new-link-priority']);
-        header("Refresh: 0");
+        echo "<meta http-equiv='refresh' content='0'>";
         exit();
     }
 } catch (PDOException $e) {
-    header("Refresh: 0");
+    echo "<meta http-equiv='refresh' content='0'>";
     exit();
 }
 

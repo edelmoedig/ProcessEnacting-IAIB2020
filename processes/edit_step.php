@@ -5,31 +5,30 @@ require "model/Process.php";
 session_start();
 
 if (!isset($_SESSION['id'])) {
-    header("Location: login.php");
+    echo "<script>window.location = 'login.php'</script>";
     exit;
 }
 
 $process = new Process();
 if (!isset($_GET['step'])) {
-    header("Location: overview.php");
+    echo "<script>window.location = 'overview.php'</script>";
     exit;
 }
 $step = $process->getStep($_GET['step']);
 if (empty($step)) {
-    $_SESSION['error'] = "There is no such process.";
-    header("Location: overview.php");
+    echo "<script>window.location = 'overview.php'</script>";
     exit;
 }
 $pr = $process->getProcess($step['process_id']);
 
-if ($pr['current_status'] != "On hold" || $pr['current_status'] != "Inactive") {
-    header("Location: edit.php?pr={$_GET['pr']}");
-}
+if (!in_array($pr['current_status'], ['On hold', 'Inactive'])) {
+    echo "<script>window.location = 'edit.php?pr={$_GET['pr']}'</script>";
+    }
 
 if (isset($_GET['prev'])) {
     $prev = $process->getStep($_GET['prev']);
     if (empty($prev)) {
-        header("Location: edit.php?pr={$_GET['pr']}");
+        echo "<script>window.location = 'edit.php?pr={$_GET['pr']}'</script>";
         exit;
     }
 }

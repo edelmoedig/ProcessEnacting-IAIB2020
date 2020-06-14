@@ -5,6 +5,7 @@ $steps = $process->getPossibleSteps($_GET['pr'], $_GET['step']);
 if (isset($_POST['connect-step-btn']) && !empty($_GET['option'])) {
     $process->changeOptionNextStep($_POST['connect-step-btn'], $_GET['option']);
     header("Location: ../processes/edit_step.php?pr={$_GET['pr']}&option={$_GET['option']}&step={$_GET['step']}");
+    echo "<meta http-equiv='refresh' content='0'>";
     exit();
 }
 

@@ -5,7 +5,7 @@ $decisionOptions = $process->getDecisionOptions($_GET['step']);
 try {
     if (isset($_POST['edit-step-btn']) && !empty($_POST['step-description'])) {
         $process->changeStepDescription($step['step_id'], htmlspecialchars($_POST['step-description']));
-        header('Refresh: 0');
+        echo "<meta http-equiv='refresh' content='0'>";
         exit();
     } else if (isset($_POST['edit-option-btn'])) {
         $id = $_POST['edit-option-btn'];
@@ -14,11 +14,11 @@ try {
         } else {
             $process->changeOptionGuardAndWeight($id, htmlspecialchars($_POST['option-guard-' . $id]), null);
         }
-        header("Refresh: 0");
+        echo "<meta http-equiv='refresh' content='0'>";
         exit();
     } else if (isset($_POST['remove-option-btn'])) {
         $process->removeOptionFromDecision($_POST['remove-option-btn']);
-        header("Refresh: 0");
+        echo "<meta http-equiv='refresh' content='0'>";
         exit();
     } else if (isset($_POST['add-option-btn'])) {
         if (!empty($_POST['new-option-weight'])) {
@@ -26,23 +26,23 @@ try {
         } else {
             $process->addOptionToDecision($_GET['step'], htmlspecialchars($_POST['new-option-guard']), null);
         }
-        header("Refresh: 0");
+        echo "<meta http-equiv='refresh' content='0'>";
         exit($_POST['add-option-btn']);
     } else if (isset($_POST['add-next-action-btn'])) {
-        header("Location: ../processes/add_step.php?pr={$_GET['pr']}&option={$_POST['add-next-action-btn']}&prev={$_GET['step']}&type=action");
+        echo "<script>window.location = '../processes/add_step.php?pr={$_GET['pr']}&option={$_POST['add-next-action-btn']}&prev={$_GET['step']}&type=action'</script>";
         exit();
     } else if (isset($_POST['add-next-decision-btn'])) {
-        header("Location: ../processes/add_step.php?pr={$_GET['pr']}&option={$_POST['add-next-decision-btn']}&prev={$_GET['step']}&type=decision");
+        echo "<script>window.location = './processes/add_step.php?pr={$_GET['pr']}&option={$_POST['add-next-decision-btn']}&prev={$_GET['step']}&type=decision'</script>";
         exit();
     } else if (isset($_POST['add-next-parallel-btn'])) {
-        header("Location: ../processes/add_step.php?pr={$_GET['pr']}&option={$_POST['add-next-parallel-btn']}&prev={$_GET['step']}&type=parallel");
+        echo "<script>window.location = '../processes/add_step.php?pr={$_GET['pr']}&option={$_POST['add-next-parallel-btn']}&prev={$_GET['step']}&type=parallel'</script>";
         exit();
     } else if (isset($_POST['connect-existing-btn'])) {
-        header("Location: ../processes/connect_step.php?pr={$_GET['pr']}&option={$_POST['connect-existing-btn']}&step={$_GET['step']}&connect=true");
+        echo "<script>window.location = '../processes/connect_step.php?pr={$_GET['pr']}&option={$_POST['connect-existing-btn']}&step={$_GET['step']}&connect=true";
         exit();
     }
 } catch (PDOException $e) {
-    header("Refresh: 0");
+    echo "<meta http-equiv='refresh' content='0'>";
     exit();
 }
 
