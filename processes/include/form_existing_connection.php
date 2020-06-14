@@ -15,6 +15,10 @@ if (isset($_POST['connect-step-btn']) && !empty($_GET['option'])) {
 ?>
 
 <div class='ui raised text container segment'>
+    <button class='ui teal button' onclick="window.history.back()"><i class='angle left icon'></i>BACK</button>
+</div>
+
+<div class='ui raised text container segment'>
     <div class='header'>
         <h3>Connect to an existing step</h3>
     </div>
