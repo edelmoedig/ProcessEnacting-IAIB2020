@@ -458,7 +458,7 @@ EXECUTE FUNCTION processes.f_remove_process_step();
 
 CREATE OR REPLACE FUNCTION processes.f_remove_process_step_with_next_step() RETURNS trigger AS $$
 BEGIN
-    RAISE EXCEPTION 'Process''s steps can only be removed if they have no associated next steps.';
+    RAISE EXCEPTION 'Process''s steps can only be removed if they have no associated next steps. %, %', OLD.step_id, OLD.next_step_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER
                     SET search_path = processes, public, pg_temp;
@@ -466,7 +466,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER
 COMMENT ON FUNCTION processes.f_remove_process_step_with_next_step() IS 'This function prevents removal of steps with associated next steps.';
 
 CREATE TRIGGER trig_remove_process_step_with_next_step
-    BEFORE DELETE
+    AFTER DELETE
     ON processes.Step
     FOR EACH ROW
     WHEN (OLD.next_step_id IS NOT NULL)

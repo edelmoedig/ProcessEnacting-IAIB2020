@@ -23,7 +23,7 @@ try {
         exit();
     } else if (isset($_POST['delete-btn'])) {
         $process->deleteProcess($pr['process_id']);
-        echo "<meta http-equiv='refresh' content='0'>";
+        echo "<script>window.location = 'overview.php'</script>";
         exit();
     }
 } catch (PDOException $e) {

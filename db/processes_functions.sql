@@ -148,15 +148,25 @@ COMMENT ON FUNCTION processes.f_end_process(p_process_id processes.Process.proce
 
 
 CREATE OR REPLACE FUNCTION processes.f_forget_process(p_process_id processes.Process.process_id%TYPE)
-    RETURNS boolean AS $$
-WITH forget_process AS (DELETE FROM processes.Process WHERE process_id = p_process_id RETURNING process_id)
-SELECT Count(*) > 0 AS result
-FROM forget_process;
-$$ LANGUAGE sql SECURITY DEFINER
+    RETURNS VOID AS $$
+    DECLARE
+        affected_rows integer;
+    BEGIN
+        WITH forget_steps AS (DELETE FROM processes.Step WHERE process_id = p_process_id AND next_step_id IS NULL RETURNING 1)
+        SELECT count(*) INTO affected_rows FROM forget_steps;
+
+        WHILE affected_rows > 0 LOOP
+            WITH forget_steps AS (DELETE FROM processes.Step WHERE process_id = p_process_id AND next_step_id IS NULL RETURNING 1)
+            SELECT count(*) INTO affected_rows FROM forget_steps;
+        END LOOP;
+
+        DELETE FROM processes.Process WHERE process_id = p_process_id;
+    END;
+$$ LANGUAGE plpgsql SECURITY DEFINER
                 SET search_path = processes, public, pg_temp;
 
 COMMENT ON FUNCTION processes.f_forget_process(p_process_id processes.Process.process_id%TYPE)
-    IS 'This function is to forget a process by deleting in from the database. The process can only be ended if it''s current status is "On hold". This function returns TRUE if the deletion was successful.';
+    IS 'This function is to forget a process by deleting in from the database. The process can only be ended if it''s current status is "On hold".';
 
 
 -- Steps
