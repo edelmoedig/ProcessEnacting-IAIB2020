@@ -2,6 +2,7 @@
 header('Content-Type: text/html; charset=utf-8');
 
 require "model/Administrator.php";
+require "functions/notifications.php";
 session_start();
 
 if (isset($_SESSION['id'])) {
@@ -14,20 +15,19 @@ if (!empty($_POST["email"]) && !empty($_POST["password"]) && (!empty($_POST["giv
         $givenName = empty($_POST["givenName"]) ? null : htmlspecialchars($_POST["givenName"]);
         $surname = empty($_POST["surname"]) ? null : htmlspecialchars($_POST["surname"]);
         (new Administrator)->register($_POST["email"], $_POST["password"], $givenName, $surname);
-        $_SESSION['success'] = "You have successfully registered!";
+        notifications\set('Registration success', 'You have successfully registered!', 'green');
         header("Location: login.php");
         exit;
     } catch (PDOException $e) {
         if ($e->getCode() == 23505) {
-            $_SESSION['error'] = "This email address is already registered.";
+            notifications\set('Registration error', 'This email address is already registered.', 'red');
         } else {
-            $_SESSION['error'] = "There has been an error while registering this user.";
+            notifications\set('Registration error', 'There has been an error while registering this user.', 'red');
         }
     }
 } else if (isset($_POST['submit'])) {
-    $_SESSION['error'] = "Please fill all required fields.";
+    notifications\set('Registration error', 'Please fill all of the required fields.', 'red');
 }
-
 ?>
 
 <html lang="en">
@@ -36,30 +36,16 @@ if (!empty($_POST["email"]) && !empty($_POST["password"]) && (!empty($_POST["giv
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" type="text/css" href="default.css">
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script>
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.4/dist/semantic.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.6/dist/semantic.min.css">
     <script src="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.4/dist/semantic.min.js"></script>
 </head>
 <body>
+
 <?php include "include/navigation.php"; ?>
+<?php notifications\displayOnce(); ?>
+
 <div class="ui raised very padded text container segment">
-
-        <h2>Register</h2>
-
-
-    <?php
-    if (isset($_SESSION['error'])) {
-        echo <<<_END
-        <div class="ui negative message">
-            <div class="header">
-                Registration error
-            </div>
-
-_END;
-        echo "<p>" . $_SESSION['error'] . "</p></div>";
-        unset($_SESSION['error']);
-    }
-    ?>
-
+    <h2>Register</h2>
     <form id="#regForm" class="ui form" method="post" action="#">
         <div class="required field">
             <label for="email">Email</label>

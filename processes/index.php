@@ -2,6 +2,7 @@
 header('Content-Type: text/html; charset=utf-8');
 
 require "model/Process.php";
+require "functions/notifications.php";
 session_start();
 
 if (isset($_GET['search'])) {
@@ -20,36 +21,14 @@ unset($_SESSION['currentUsage']);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" type="text/css" href="default.css">
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script>
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.4/dist/semantic.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.6/dist/semantic.min.css">
     <script src="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.4/dist/semantic.min.js"></script>
 </head>
 <body>
+
 <?php include "include/navigation.php"; ?>
 <?php include "include/password_access.php"; ?>
-
-<?php
-if (isset($_SESSION['error'])) {
-    echo "<div class='ui center aligned three column grid'>
-            <div class='ui negative message'>
-                <div class='header'>
-                     Error
-                </div>
-    ";
-    echo "<p>" . $_SESSION['error'] . "</p></div></div>";
-    unset($_SESSION['error']);
-}
-if (isset($_SESSION['success'])) {
-    echo "<div class='ui center aligned three column grid'>
-            <div class='ui positive message'>
-                <div class='header'>
-                    Login success
-                </div>
-    ";
-    echo "<p>" . $_SESSION['success'] . "</p></div></div>";
-    unset($_SESSION['success']);
-}
-?>
-
+<?php notifications\displayOnce(); ?>
 <?php include "include/search.php"; ?>
 
 <?php

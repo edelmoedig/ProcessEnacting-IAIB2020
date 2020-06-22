@@ -2,6 +2,7 @@
 header('Content-Type: text/html; charset=utf-8');
 
 require "model/Process.php";
+require "functions/notifications.php";
 session_start();
 
 $process = new Process();
@@ -9,13 +10,13 @@ $step = $process->getStep($_GET['step']);
 $pr = $process->getProcess($step['process_id']);
 
 if ($_GET['pr'] != $step['process_id'] or empty($pr)) {
-    $_SESSION['error'] = "There is no such process.";
+    notifications\set('Access error', 'There is no such process.', 'red');
     header("Location: index.php");
     exit;
 }
 
 if ($pr['has_password'] && !in_array($pr['process_id'], $_SESSION['accessedProcesses'])) {
-    $_SESSION['error'] = "Please enter the password to access this process {$pr['process_id']} {$_SESSION['accessedProcesses']}.";
+    notifications\set('Access denied', 'Please enter the password to access this process.', 'red');
     header("Location: index.php?access={$pr['process_id']}");
     exit;
 }
@@ -59,16 +60,17 @@ $decisionTables = $process->getDecisionTables($_GET['step']);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" type="text/css" href="default.css">
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script>
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.4/dist/semantic.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.6/dist/semantic.min.css">
     <script src="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.4/dist/semantic.min.js"></script>
 </head>
 <body>
+
 <?php include "include/navigation.php"; ?>
+<?php notifications\displayOnce(); ?>
 
 <div class="ui grid container">
     <div class="two wide column">
-        <?php echo
-        "<i class='angle double left icon'></i><h3><span title='Go back to the first step'><a href='enact.php?pr={$pr['process_id']}&step={$pr['first_step_id']}'>{$pr['process_name']}</span></h3></a>" ?>
+        <?="<i class='angle double left icon'></i><h3><span title='Go back to the first step'><a href='enact.php?pr={$pr['process_id']}&step={$pr['first_step_id']}'>{$pr['process_name']}</span></h3></a>"?>
     </div>
     <div class="eleven wide column">
         <?php echo "<h3>$typeName</h3>" ?>
