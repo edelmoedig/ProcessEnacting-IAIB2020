@@ -1,12 +1,20 @@
 <?php
 
 if (isset($_POST['password-btn'])) {
-    if (!empty($_POST['process-password'])) {
-        $process->changeProcessPassword($pr['process_id'], $_POST['process-password']);
-        echo "<meta http-equiv='refresh' content='0'>";
-        exit();
-    } else {
-        $process->changeProcessPassword($pr['process_id'], null);
+    try {
+        if (!empty($_POST['process-password'])) {
+            $process->changeProcessPassword($pr['process_id'], $_POST['process-password']);
+            notifications\set('Successfully edited', 'Password successfully changed.', 'green');
+            echo "<meta http-equiv='refresh' content='0'>";
+            exit();
+        } else {
+            $process->changeProcessPassword($pr['process_id'], null);
+            notifications\set('Successfully edited', 'Password successfully changed.', 'green');
+            echo "<meta http-equiv='refresh' content='0'>";
+            exit();
+        }
+    } catch (PDOException $e) {
+        notifications\set('Edit error', 'Password could not be changed.', 'red');
         echo "<meta http-equiv='refresh' content='0'>";
         exit();
     }

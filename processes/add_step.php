@@ -47,7 +47,7 @@ try {
         } else if (isset($_POST['add-parallel-btn'])) {
             $step = $process->addParallelActivityToOption($_GET['pr'], $_GET['option'], htmlspecialchars($_POST['step-description']));
         }
-        notifications\set('Edit success', 'Next step successfully added.', 'green');
+        notifications\set('Successfully edited', 'Next step successfully added.', 'green');
         echo "<script>window.location = 'edit_step.php?pr={$_GET['pr']}&step={$step}&prev={$_GET['prev']}}'</script>";
         exit();
     } else if (empty($_GET['prev'])) {
@@ -58,7 +58,7 @@ try {
         } else if (isset($_POST['add-parallel-btn'])) {
             $step = $process->addFirstParallelActivity($_GET['pr'], htmlspecialchars($_POST['step-description']));
         }
-        notifications\set('Edit success', 'First step successfully added.', 'green');
+        notifications\set('Successfully edited', 'First step successfully added.', 'green');
         echo "<script>window.location = 'edit_step.php?pr={$_GET['pr']}&step={$step}'</script>";
         exit;
     } else if (!empty($_GET['prev'])) {
@@ -69,7 +69,7 @@ try {
         } else if (isset($_POST['add-parallel-btn'])) {
             $step = $process->addParallelActivityToStep($_GET['pr'], $_GET['prev'], htmlspecialchars($_POST['step-description']));
         }
-        notifications\set('Edit success', 'Next step successfully added.', 'green');
+        notifications\set('Successfully edited', 'Next step successfully added.', 'green');
         echo "<script>window.location = 'edit_step.php?pr={$_GET['pr']}&step={$step}&prev={$_GET['prev']}'</script>";
         exit;
     }

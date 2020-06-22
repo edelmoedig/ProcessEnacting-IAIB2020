@@ -5,6 +5,7 @@ $decisionOptions = $process->getDecisionOptions($_GET['step']);
 try {
     if (isset($_POST['edit-step-btn']) && !empty($_POST['step-description'])) {
         $process->changeStepDescription($step['step_id'], htmlspecialchars($_POST['step-description']));
+        notifications\set('Successfully edited', 'Step has been successfully edited.', 'green');
         echo "<meta http-equiv='refresh' content='0'>";
         exit();
     } else if (isset($_POST['edit-option-btn'])) {
@@ -14,6 +15,7 @@ try {
         } else {
             $process->changeOptionGuardAndWeight($id, htmlspecialchars($_POST['option-guard-' . $id]), null);
         }
+        notifications\set('Successfully edited', 'Option has been successfully edited.', 'green');
         echo "<meta http-equiv='refresh' content='0'>";
         exit();
     } else if (isset($_POST['remove-option-btn'])) {
@@ -26,6 +28,7 @@ try {
         } else {
             $process->addOptionToDecision($_GET['step'], htmlspecialchars($_POST['new-option-guard']), null);
         }
+        notifications\set('Successfully added', 'Option has been successfully added.', 'green');
         echo "<meta http-equiv='refresh' content='0'>";
         exit($_POST['add-option-btn']);
     } else if (isset($_POST['add-next-action-btn'])) {
@@ -42,6 +45,7 @@ try {
         exit();
     }
 } catch (PDOException $e) {
+    notifications\set('Error', 'There has been an error.', 'red');
     echo "<meta http-equiv='refresh' content='0'>";
     exit();
 }

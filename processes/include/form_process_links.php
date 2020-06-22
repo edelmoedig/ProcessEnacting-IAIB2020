@@ -6,18 +6,22 @@ try {
     if (isset($_POST['edit-link-btn'])) {
         $id = $_POST['edit-link-btn'];
         $process->editProcessLink($id, $_POST['link-url-' . $id], $_POST['link-name-' . $id], $_POST['link-priority-' . $id]);
+        notifications\set('Successfully edited', 'Link has been successfully edited.', 'green');
         echo "<meta http-equiv='refresh' content='0'>";
         exit();
     } else if (isset($_POST['remove-link-btn'])) {
         $process->removeProcessLink($_POST['remove-link-btn']);
+        notifications\set('Successfully edited', 'Link has been successfully removed.', 'green');
         echo "<meta http-equiv='refresh' content='0'>";
         exit();
     } else if (isset($_POST['add-link-btn'])) {
         $process->addProcessLink($pr['process_id'], $_POST['new-link-url'], $_POST['new-link-name'], $_POST['new-link-priority']);
+        notifications\set('Successfully edited', 'Link has been successfully added.', 'green');
         echo "<meta http-equiv='refresh' content='0'>";
         exit();
     }
 } catch (PDOException $e) {
+    notifications\set('Successfully edited', 'Link has been successfully added.', 'green');
     echo "<meta http-equiv='refresh' content='0'>";
     exit();
 }

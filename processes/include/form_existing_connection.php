@@ -4,14 +4,15 @@ $steps = $process->getPossibleSteps($_GET['pr'], $_GET['step']);
 
 if (isset($_POST['connect-step-btn']) && !empty($_GET['option'])) {
     $process->changeOptionNextStep($_GET['option'], $_POST['connect-step-btn']);
+    notifications\set('Successfully edited', 'Next step has been successfully connected.', 'green');
     echo "<script>window.location = '../processes/edit_step.php?pr={$_GET['pr']}&option={$_GET['option']}&step={$_GET['step']}'</script>";
     exit();
 } else if (isset($_POST['connect-step-btn']) && !empty($_GET['step'])) {
     $process->changeStepNextStep($_GET['step'], $_POST['connect-step-btn']);
+    notifications\set('Successfully edited', 'Next step has been successfully connected.', 'green');
     echo "<script>window.location = '../processes/edit_step.php?pr={$_GET['pr']}&step={$_GET['step']}&prev={$_POST['connect-step-btn']}'</script>";
     exit();
 }
-
 ?>
 
 <div class='ui raised text container segment'>

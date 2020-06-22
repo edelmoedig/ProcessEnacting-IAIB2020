@@ -39,7 +39,7 @@ unset($_SESSION['currentUsage']);
 <?php include "include/navigation.php"; ?>
 <?php include "include/search.php"; ?>
 <?php include "include/form_create_process.php"; ?>
-<?php notifications\displayOnce() ?>;
+<?php notifications\displayOnce() ?>
 
 <?php
 

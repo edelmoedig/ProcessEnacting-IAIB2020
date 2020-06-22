@@ -3,6 +3,7 @@
 if (isset($_POST['edit-btn'])) {
     if (!empty($_POST['process-name']) && !empty($_POST['process-description'])) {
         $process->changeProcessNameAndDescription($pr['process_id'], $_POST['process-name'], $_POST['process-description']);
+        notifications\set('Successfully edited', 'Process has been successfully edited.', 'green');
         echo "<meta http-equiv='refresh' content='0'>";
         exit();
     }

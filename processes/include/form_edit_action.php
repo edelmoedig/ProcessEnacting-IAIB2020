@@ -2,6 +2,7 @@
 
 if (isset($_POST['edit-step-btn']) && !empty($_POST['step-description'])) {
     $process->changeStepDescription($step['step_id'], htmlspecialchars($_POST['step-description']));
+    notifications\set('Successfully edited', 'Step has been successfully edited.', 'green');
     echo "<meta http-equiv='refresh' content='0'>";
     exit();
 }
