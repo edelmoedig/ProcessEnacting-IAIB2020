@@ -1,0 +1,18 @@
+body {
+    background-color: rgb(239, 243, 246) !important;
+}
+
+a > .segment {
+    margin-bottom: 15px !important;
+}
+.green.inverted.clickable.segment:hover {
+    background-color: green !important;
+}
+
+.yellow.inverted.clickable.segment:hover {
+    background-color: rgb(210, 171, 37) !important;
+}
+
+.teal.inverted.clickable.segment:hover {
+    background-color: rgb(26, 130, 117) !important;
+}

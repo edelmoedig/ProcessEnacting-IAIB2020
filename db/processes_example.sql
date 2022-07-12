@@ -1,0 +1,56 @@
+BEGIN;
+DO $$
+    DECLARE
+        administrator integer;
+        process integer;
+        ettevalmistus integer;
+        kas_saan_kohale_tulla integer;
+        saan_tulla integer;
+        ei_saa_tulla integer;
+        tyhista integer;
+        ole_kohal integer;
+        kohtumine integer;
+        kuidas_lood_on integer;
+        on_pisivead integer;
+        on_korras integer;
+        on_suured_puudused integer;
+        maara_kordaja integer;
+        kordaja_tabel integer;
+        parandamine integer;
+    BEGIN
+        SELECT processes.f_register_administrator('example@test.ee', 'qwerty2020', 'Example', 'Admin') INTO administrator;
+        SELECT processes.f_register_process('Iseseisva töö esitamise ja hindamise protsess', 'Admebaaside II projekt.', administrator, NULL) INTO process;
+        SELECT processes.f_add_first_parallel_activity(process, 'Ettevalmistus') INTO ettevalmistus;
+        PERFORM processes.f_add_action_in_parallel_activity(process, ettevalmistus, 'Registreeri ettenäitamisele');
+        PERFORM processes.f_add_action_in_parallel_activity(process, ettevalmistus, 'Lae failid Maurusesse');
+        SELECT processes.f_add_decision_to_step(process, ettevalmistus, 'Kas saan kohale tuua?') INTO kas_saan_kohale_tulla;
+        SELECT processes.f_add_option_to_decision(kas_saan_kohale_tulla, NULL, 'Ei JA ettenäitamiseni rohkem kui 24 tundi') INTO ei_saa_tulla;
+        SELECT processes.f_add_option_to_decision(kas_saan_kohale_tulla, NULL, 'Jah VÕI (ei ja ettenäitamiseni vähem kui 24 tundi)') INTO saan_tulla;
+        SELECT processes.f_add_action_to_option(process, ei_saa_tulla, 'Tühista registreerimine') INTO tyhista;
+        PERFORM processes.f_add_action_to_step_existing_next(process, tyhista, kas_saan_kohale_tulla, 'Registreeri ettenäitamisele');
+        SELECT processes.f_add_action_to_option(process, saan_tulla, 'Ole kohal (vähemalt üks autor)') INTO ole_kohal;
+        SELECT processes.f_add_parallel_activity_to_step(process, ole_kohal, 'Kohtumine') INTO kohtumine;
+        PERFORM processes.f_add_action_in_parallel_activity(process, kohtumine, 'Vaata iseseisev töö koos õppejõuga üle');
+        PERFORM processes.f_add_action_in_parallel_activity(process, kohtumine, 'Tee märkmeid');
+        SELECT processes.f_add_decision_to_step(process, kohtumine, 'Kuidas iseseisva tööga lood on?') INTO kuidas_lood_on;
+        SELECT processes.f_add_option_to_decision(kuidas_lood_on, NULL, 'Iseseisvas töös on pisivead JA õppejõud annab loa kohapeal parandamiseks') INTO on_pisivead;
+        SELECT processes.f_add_option_to_decision(kuidas_lood_on, NULL, 'Iseseisev töö on korras') INTO on_korras;
+        PERFORM processes.f_add_action_to_option_existing_next(process, on_pisivead, ole_kohal, 'Paranda iseseisvat tööd kohapeal');
+        SELECT processes.f_add_action_to_option(process, on_korras, 'Õppejõud: määra projekti kordaja, mis sõltub arvestuse saamise ajast') INTO maara_kordaja;
+        SELECT processes.f_add_decision_table(maara_kordaja, 'Kordajad') INTO kordaja_tabel;
+        PERFORM processes.f_add_decision_table_entry(kordaja_tabel, 'Õppenädal, mil arvestati', 'Projekti kordaja', 1::smallint);
+        PERFORM processes.f_add_decision_table_entry(kordaja_tabel, '1-13', '1.3', 2::smallint);
+        PERFORM processes.f_add_decision_table_entry(kordaja_tabel, '14-15', '1.2', 3::smallint);
+        PERFORM processes.f_add_decision_table_entry(kordaja_tabel, '16', '1.1', 4::smallint);
+        PERFORM processes.f_add_decision_table_entry(kordaja_tabel, '17-18', '1.0', 5::smallint);
+        PERFORM processes.f_add_decision_table_entry(kordaja_tabel, '19-20', '0.9', 6::smallint);
+        PERFORM processes.f_add_action_to_step(process, maara_kordaja, 'Iseseisev töö on arvestatud');
+        SELECT processes.f_add_option_to_decision(kuidas_lood_on, NULL, 'Iseseisvas töös on suured puudused VÕI (iseseisvas töös on pisivead ja õppejõud ei anna kohapeal parandamiseks luba)') INTO on_suured_puudused;
+        SELECT processes.f_add_parallel_activity_to_option_existing_next(process, on_suured_puudused, kas_saan_kohale_tulla, 'Parandamine') INTO parandamine;
+        PERFORM processes.f_add_action_in_parallel_activity(process, parandamine, 'Registreeri ettenäitamisele');
+        PERFORM processes.f_add_action_in_parallel_activity(process, parandamine, 'Paranda iseseisvat tööd');
+        PERFORM processes.f_add_action_in_parallel_activity(process, parandamine, 'Lae failid Maurusesse');
+        PERFORM processes.f_activate_process(process);
+    END
+$$;
+COMMIT;
